@@ -24,6 +24,18 @@ Le dashboard P10 répond à quatre besoins utilisateurs prioritaires :
 
 ---
 
+## 📋 Proof Point : Vue Client/Recruteur
+
+| Pilier | Résumé |
+|--------|--------|
+| **1️⃣ Besoin Métier** | ODD (objectifs durables ONU) : 2.2B sans accès eau potable. Enjeu décideur/ONG : identifier régions prioritaires, évaluer stabilité politique vs accès WASH (eau/hygiène/assainissement). Besoin : consolidation multi-sources géographiques pour piloter actions humanitaires/gouvernance. |
+| **2️⃣ Données** | **Sources** : 5 fichiers CSV (population Banque Mondiale, régions UN, stabilité politique, mortalité WASH, services eau) x 150+ pays x 20 ans. **Qualité** : ✅ Harmonisées (COG) mais granularité variable (nationale/régionale). **Limites** : Lag données (estimations 2-3 ans) ; pas causation politique/accès eau. |
+| **3️⃣ Démarche** | **Stack** : Python/Pandas (EDA + agrégations) + Langage M/Power Query (ETL Power BI) + Power BI Desktop (star schema). **Pipeline** : 5 sources → Schéma canonique français (normalisation pays) → Fact/Dim tables (star) → Visualisations BI (choroplethe, heatmap, top N). Justification : Power BI scalable pour dashboards interactifs multi-continents + Langage M pour logiques ETL complexes (enrichissements géographiques). |
+| **4️⃣ Résultats** | **KPIs** : 200 pays classés par accès eau (0-100%) vs stabilité politique ; 5 clusters géographiques (zones critiques) ; trajectoires 2000-2024. **Recommandations** : Prioriser 20 pays (< 50% accès sûr) ; cibles gouvernance (low stability). **Livrable** : Dashboard Power BI interactif (5 pages) + CSV étoile (180k lignes). |
+| **5️⃣ Limites** | Pas données ICP (infrastructure) ; estimation/lag données ; modèle descriptif (pas prédictif). **Pistes** : Intégrer données satellite (accès réel) ; machine learning clustering (k-means → 5 clusters validés) ; tableau temps réel (API Banque Mondiale). |
+
+---
+
 ## Structure du projet
 
 ```
