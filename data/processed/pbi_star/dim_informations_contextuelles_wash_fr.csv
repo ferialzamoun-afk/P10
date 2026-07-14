@@ -1,0 +1,35 @@
+region;region_fr;pays;annee;nom_evenement;type_evenement;impact_wash;focus_2016;source
+Africa;Afrique;Mozambique;2000;Inondations severes au centre du Mozambique;Inondation;Points d eau noyes - assainissement endommage - deplacements de population;Non;UN OCHA / UNICEF
+Africa;Afrique;Zimbabwe;2008;Epidemie nationale de cholera;Epidemie;Effondrement du systeme d eau et exposition a une eau non sure;Non;OMS / UNICEF
+Africa;Afrique;Guinee;2014;Epidemie Ebola;Epidemie;Perturbation des services sanitaires et WASH - pression sur l hygiene;Non;OMS / ONU
+Africa;Afrique;Liberia;2014;Epidemie Ebola;Epidemie;Interruption des services et degradation des conditions d assainissement;Non;OMS / ONU
+Africa;Afrique;Sierra Leone;2014;Epidemie Ebola;Epidemie;Acces WASH contraint dans les zones affectees;Non;OMS / ONU
+Africa;Afrique;Ethiopie;2015;Secheresse El Nino;Secheresse;Reduction de la disponibilite en eau et recours accru aux sources non sures;Non;UN OCHA / UNICEF
+Africa;Afrique;Somalie;2016;Secheresse severe et deplacements;Secheresse;Rarefaction de l eau - deplacements massifs - pression sur l assainissement;Oui;UN OCHA / UNICEF
+Africa;Afrique;Soudan du Sud;2016;Conflit - deplacements et risque de cholera;Conflit;Deterioration des infrastructures et acces limite a l eau potable;Oui;OMS / UN OCHA
+Africa;Afrique;Madagascar;2018;Cyclone Ava et inondations;Tempete / Inondation;Infrastructures WASH inondees et risque de contamination;Non;UN OCHA
+Americas;Ameriques;Haiti;2010;Seisme et epidemie de cholera;Seisme / Epidemie;Destruction des infrastructures WASH et contamination de l eau;Non;OMS / UNICEF
+Americas;Ameriques;Bresil;2015;Secheresse dans le Nordeste;Secheresse;Rationnement de l eau et reduction de la fiabilite des services;Non;Rapports nationaux et regionaux
+Americas;Ameriques;Haiti;2016;Ouragan Matthew;Cyclone;Reseaux d eau endommages et systemes d assainissement deteriores;Oui;UN OCHA / UNICEF
+Americas;Ameriques;Dominique;2017;Ouragan Maria;Cyclone;Dommages severes aux infrastructures d eau et d assainissement;Non;UN OCHA
+Americas;Ameriques;Porto Rico;2017;Recuperation post-ouragan Maria;Cyclone;Perturbations prolongees de l acces a l eau potable;Non;UN OCHA / autorites locales
+Americas;Ameriques;Guatemala;2018;Stress hydrique dans le corridor sec;Secheresse;Rarefaction de l eau en zone rurale et contraintes d hygiene;Non;UN OCHA / FAO
+Eastern Mediterranean;Mediterranee orientale;Irak;2003;Guerre et effondrement des services publics;Conflit;Deterioration du reseau d eau et deplacements de population;Non;OMS / UN OCHA
+Eastern Mediterranean;Mediterranee orientale;Pakistan;2010;Inondations majeures;Inondation;Contamination de l eau potable et rupture de l assainissement;Non;UN OCHA / UNICEF
+Eastern Mediterranean;Mediterranee orientale;Syria;2011;Conflit arme;Conflit;Deterioration des infrastructures et deplacements massifs;Non;OMS / UN OCHA
+Eastern Mediterranean;Mediterranee orientale;Yemen;2015;Escalade du conflit;Conflit;Effondrement des systemes d eau et risque WASH tres eleve;Oui;OMS / UNICEF
+Eastern Mediterranean;Mediterranee orientale;Yemen;2016;Epidemie de cholera et effondrement des infrastructures;Epidemie;Eau non sure et conditions d assainissement critiques;Oui;OMS / UNICEF
+Europe;Europe;Bosnie-Herzegovine;2014;Inondations severes;Inondation;Dommages aux reseaux d eau et d assainissement locaux;Non;UN OCHA
+Europe;Europe;Serbie;2014;Inondations severes;Inondation;Infrastructures inondees et interruptions de service;Non;UN OCHA
+Europe;Europe;Grece;2015;Pression migratoire et refugies;Deplacement;Pression sur l assainissement et les abris temporaires;Non;UNHCR / OMS
+Europe;Europe;Italie;2016;Seisme en Italie centrale;Seisme;Perturbation locale des infrastructures et stress temporaire sur les services;Oui;Protection civile / OMS
+South-East Asia;Asie du Sud-Est;Indonesie;2004;Tsunami de l ocean Indien;Tsunami;Destruction des points d eau cotiers et des installations d assainissement;Non;UN OCHA / UNICEF
+South-East Asia;Asie du Sud-Est;Bangladesh;2007;Cyclone Sidr;Cyclone;Inondations - contamination de l eau et pression sur les abris;Non;UN OCHA
+South-East Asia;Asie du Sud-Est;Myanmar;2008;Cyclone Nargis;Cyclone;Dommages massifs aux infrastructures d eau potable et d assainissement;Non;UN OCHA / UNICEF
+South-East Asia;Asie du Sud-Est;Nepal;2015;Seisme;Seisme;Reseaux d eau et systemes d assainissement endommages;Non;UN OCHA / UNICEF
+South-East Asia;Asie du Sud-Est;Indonesie;2016;Secheresse El Nino;Secheresse;Reduction de la disponibilite en eau et exposition accrue aux sources non sures;Oui;UN OCHA / UNICEF
+Western Pacific;Pacifique occidental;Samoa;2009;Tsunami;Tsunami;Dommages aux reseaux d eau et contamination cotiere;Non;UN OCHA
+Western Pacific;Pacifique occidental;Philippines;2013;Typhon Haiyan;Cyclone;Dommages a grande echelle sur les infrastructures WASH;Non;UN OCHA / UNICEF
+Western Pacific;Pacifique occidental;Vanuatu;2015;Cyclone Pam;Cyclone;Dommages severes aux reseaux d eau et d assainissement;Non;UN OCHA
+Western Pacific;Pacifique occidental;Fidji;2016;Cyclone Winston;Cyclone;Inondations - contamination et perturbation de l acces a l eau potable;Oui;UN OCHA / UNICEF
+Western Pacific;Pacifique occidental;Papouasie-Nouvelle-Guinee;2016;Secheresse El Nino;Secheresse;Rarefaction de l eau et recours aux sources non sures;Oui;UNICEF / rapports nationaux

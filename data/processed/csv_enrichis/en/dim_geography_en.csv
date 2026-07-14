@@ -1,0 +1,241 @@
+iso3;country_en;country_fr;who_region;continent;un_subregion
+DZA;Algeria;Algérie;Africa;Africa;Northern Africa
+AGO;Angola;Angola;Africa;Africa;Middle Africa
+BEN;Benin;Bénin;Africa;Africa;Western Africa
+BWA;Botswana;Botswana;Africa;Africa;Southern Africa
+BFA;Burkina Faso;Burkina Faso;Africa;Africa;Western Africa
+BDI;Burundi;Burundi;Africa;Africa;Eastern Africa
+CPV;Cabo Verde;Cap-Vert;Africa;Africa;Western Africa
+CMR;Cameroon;Cameroun;Africa;Africa;Middle Africa
+CAF;Central African Republic;République centrafricaine;Africa;Africa;Middle Africa
+TCD;Chad;Tchad;Africa;Africa;Middle Africa
+COM;Comoros;Comores;Africa;Africa;Eastern Africa
+COG;Congo;Congo-Brazzaville;Africa;Africa;Middle Africa
+CIV;Côte d'Ivoire;Côte d’Ivoire;Africa;Africa;Western Africa
+COD;Democratic Republic of the Congo;Congo-Kinshasa;Africa;Africa;Middle Africa
+GNQ;Equatorial Guinea;Guinée équatoriale;Africa;Africa;Middle Africa
+ERI;Eritrea;Érythrée;Africa;Africa;Eastern Africa
+SWZ;Eswatini;Eswatini;Africa;Africa;Southern Africa
+ETH;Ethiopia;Éthiopie;Africa;Africa;Eastern Africa
+GAB;Gabon;Gabon;Africa;Africa;Middle Africa
+GMB;Gambia;Gambie;Africa;Africa;Western Africa
+GHA;Ghana;Ghana;Africa;Africa;Western Africa
+GIN;Guinea;Guinée;Africa;Africa;Western Africa
+GNB;Guinea-Bissau;Guinée-Bissau;Africa;Africa;Western Africa
+KEN;Kenya;Kenya;Africa;Africa;Eastern Africa
+LSO;Lesotho;Lesotho;Africa;Africa;Southern Africa
+LBR;Liberia;Liberia;Africa;Africa;Western Africa
+MDG;Madagascar;Madagascar;Africa;Africa;Eastern Africa
+MWI;Malawi;Malawi;Africa;Africa;Eastern Africa
+MLI;Mali;Mali;Africa;Africa;Western Africa
+MRT;Mauritania;Mauritanie;Africa;Africa;Western Africa
+MUS;Mauritius;Maurice;Africa;Africa;Eastern Africa
+MYT;Mayotte;Mayotte;Africa;Africa;Eastern Africa
+MOZ;Mozambique;Mozambique;Africa;Africa;Eastern Africa
+NAM;Namibia;Namibie;Africa;Africa;Southern Africa
+NER;Niger;Niger;Africa;Africa;Western Africa
+NGA;Nigeria;Nigeria;Africa;Africa;Western Africa
+RWA;Rwanda;Rwanda;Africa;Africa;Eastern Africa
+REU;Réunion;La Réunion;Africa;Africa;Eastern Africa
+SHN;Saint Helena, Ascension and Tristan da Cunha;Sainte-Hélène;Africa;Africa;Western Africa
+STP;Sao Tome and Principe;Sao Tomé-et-Principe;Africa;Africa;Middle Africa
+SEN;Senegal;Sénégal;Africa;Africa;Western Africa
+SYC;Seychelles;Seychelles;Africa;Africa;Eastern Africa
+SLE;Sierra Leone;Sierra Leone;Africa;Africa;Western Africa
+ZAF;South Africa;Afrique du Sud;Africa;Africa;Southern Africa
+SSD;South Sudan;Soudan du Sud;Africa;Africa;Eastern Africa
+TGO;Togo;Togo;Africa;Africa;Western Africa
+UGA;Uganda;Ouganda;Africa;Africa;Eastern Africa
+TZA;United Republic of Tanzania;Tanzanie;Africa;Africa;Eastern Africa
+ESH;Western Sahara;Sahara occidental;Africa;Africa;Northern Africa
+ZMB;Zambia;Zambie;Africa;Africa;Eastern Africa
+ZWE;Zimbabwe;Zimbabwe;Africa;Africa;Eastern Africa
+AIA;Anguilla;Anguilla;Americas;America;Caribbean
+ATG;Antigua and Barbuda;Antigua-et-Barbuda;Americas;America;Caribbean
+ARG;Argentina;Argentine;Americas;America;South America
+ABW;Aruba;Aruba;Americas;America;Caribbean
+BHS;Bahamas;Bahamas;Americas;America;Caribbean
+BRB;Barbados;Barbade;Americas;America;Caribbean
+BLZ;Belize;Belize;Americas;America;Central America
+BMU;Bermuda;Bermudes;Americas;America;Northern America
+BOL;Bolivia (Plurinational State of);Bolivie;Americas;America;South America
+BES;Bonaire, Sint Eustatius and Saba;Pays-Bas caribéens;Americas;America;Caribbean
+BRA;Brazil;Brésil;Americas;America;South America
+VGB;British Virgin Islands;Îles Vierges britanniques;Americas;America;Caribbean
+CAN;Canada;Canada;Americas;America;Northern America
+CYM;Cayman Islands;Îles Caïmans;Americas;America;Caribbean
+CHL;Chile;Chili;Americas;America;South America
+COL;Colombia;Colombie;Americas;America;South America
+CRI;Costa Rica;Costa Rica;Americas;America;Central America
+CUB;Cuba;Cuba;Americas;America;Caribbean
+CUW;Curaçao;Curaçao;Americas;America;Caribbean
+DMA;Dominica;Dominique;Americas;America;Caribbean
+DOM;Dominican Republic;République dominicaine;Americas;America;Caribbean
+ECU;Ecuador;Équateur;Americas;America;South America
+SLV;El Salvador;Salvador;Americas;America;Central America
+FLK;Falkland Islands (Malvinas);Îles Malouines;Americas;America;South America
+GUF;French Guyana;Guyane française;Americas;America;South America
+GRL;Greenland;Groenland;Americas;America;Northern America
+GRD;Grenada;Grenade;Americas;America;Caribbean
+GLP;Guadeloupe;Guadeloupe;Americas;America;Caribbean
+GTM;Guatemala;Guatemala;Americas;America;Central America
+GUY;Guyana;Guyana;Americas;America;South America
+HTI;Haiti;Haïti;Americas;America;Caribbean
+HND;Honduras;Honduras;Americas;America;Central America
+JAM;Jamaica;Jamaïque;Americas;America;Caribbean
+MTQ;Martinique;Martinique;Americas;America;Caribbean
+MEX;Mexico;Mexique;Americas;America;Central America
+MSR;Montserrat;Montserrat;Americas;America;Caribbean
+HIST_ANT;Netherlands Antilles;Antilles néerlandaises;Americas;Americas;Caribbean
+NIC;Nicaragua;Nicaragua;Americas;America;Central America
+PAN;Panama;Panama;Americas;America;Central America
+PRY;Paraguay;Paraguay;Americas;America;South America
+PER;Peru;Pérou;Americas;America;South America
+PRI;Puerto Rico;Porto Rico;Americas;America;Caribbean
+BLM;Saint Barthélemy;Saint-Barthélemy;Americas;America;Caribbean
+KNA;Saint Kitts and Nevis;Saint-Christophe-et-Niévès;Americas;America;Caribbean
+LCA;Saint Lucia;Sainte-Lucie;Americas;America;Caribbean
+SPM;Saint Pierre and Miquelon;Saint-Pierre-et-Miquelon;Americas;America;Northern America
+VCT;Saint Vincent and the Grenadines;Saint-Vincent-et-les Grenadines;Americas;America;Caribbean
+MAF;Saint-Martin (French part);Saint-Martin;Americas;America;Caribbean
+SXM;Sint Maarten  (Dutch part);Saint-Martin (partie néerlandaise);Americas;America;Caribbean
+SXM;Sint Maarten (Dutch part);Saint-Martin (partie néerlandaise);Americas;America;Caribbean
+SUR;Suriname;Suriname;Americas;America;South America
+TTO;Trinidad and Tobago;Trinité-et-Tobago;Americas;America;Caribbean
+TCA;Turks and Caicos Islands;Îles Turques-et-Caïques;Americas;America;Caribbean
+VIR;United States Virgin Islands;Îles Vierges des États-Unis;Americas;America;Caribbean
+USA;United States of America;États-Unis;Americas;America;Northern America
+URY;Uruguay;Uruguay;Americas;America;South America
+VEN;Venezuela (Bolivarian Republic of);Venezuela;Americas;America;South America
+AFG;Afghanistan;Afghanistan;Eastern Mediterranean;Asia;Southern Asia
+BHR;Bahrain;Bahreïn;Eastern Mediterranean;Asia;Western Asia
+DJI;Djibouti;Djibouti;Eastern Mediterranean;Africa;Eastern Africa
+EGY;Egypt;Égypte;Eastern Mediterranean;Africa;Northern Africa
+IRN;Iran (Islamic Republic of);Iran;Eastern Mediterranean;Asia;Southern Asia
+IRQ;Iraq;Irak;Eastern Mediterranean;Asia;Western Asia
+JOR;Jordan;Jordanie;Eastern Mediterranean;Asia;Western Asia
+KWT;Kuwait;Koweït;Eastern Mediterranean;Asia;Western Asia
+LBN;Lebanon;Liban;Eastern Mediterranean;Asia;Western Asia
+LBY;Libya;Libye;Eastern Mediterranean;Africa;Northern Africa
+MAR;Morocco;Maroc;Eastern Mediterranean;Africa;Northern Africa
+OMN;Oman;Oman;Eastern Mediterranean;Asia;Western Asia
+PAK;Pakistan;Pakistan;Eastern Mediterranean;Asia;Southern Asia
+PSE;Palestine;Territoires palestiniens;Eastern Mediterranean;Asia;Western Asia
+QAT;Qatar;Qatar;Eastern Mediterranean;Asia;Western Asia
+SAU;Saudi Arabia;Arabie saoudite;Eastern Mediterranean;Asia;Western Asia
+SOM;Somalia;Somalie;Eastern Mediterranean;Africa;Eastern Africa
+SDN;Sudan;Soudan;Eastern Mediterranean;Africa;Northern Africa
+SDN;Sudan (former);Soudan;Eastern Mediterranean;Africa;Northern Africa
+SYR;Syrian Arab Republic;Syrie;Eastern Mediterranean;Asia;Western Asia
+TUN;Tunisia;Tunisie;Eastern Mediterranean;Africa;Northern Africa
+ARE;United Arab Emirates;Émirats arabes unis;Eastern Mediterranean;Asia;Western Asia
+YEM;Yemen;Yémen;Eastern Mediterranean;Asia;Western Asia
+ALB;Albania;Albanie;Europe;Europe;Southern Europe
+AND;Andorra;Andorre;Europe;Europe;Southern Europe
+ARM;Armenia;Arménie;Europe;Asia;Western Asia
+AUT;Austria;Autriche;Europe;Europe;Western Europe
+AZE;Azerbaijan;Azerbaïdjan;Europe;Asia;Western Asia
+BLR;Belarus;Biélorussie;Europe;Europe;Eastern Europe
+BEL;Belgium;Belgique;Europe;Europe;Western Europe
+BIH;Bosnia and Herzegovina;Bosnie-Herzégovine;Europe;Europe;Southern Europe
+BGR;Bulgaria;Bulgarie;Europe;Europe;Eastern Europe
+HIST_CHI;Channel Islands;Îles anglo-normandes;Europe;Europe;Northern Europe
+HRV;Croatia;Croatie;Europe;Europe;Southern Europe
+CYP;Cyprus;Chypre;Europe;Asia;Western Asia
+CZE;Czechia;Tchéquie;Europe;Europe;Eastern Europe
+DNK;Denmark;Danemark;Europe;Europe;Northern Europe
+EST;Estonia;Estonie;Europe;Europe;Northern Europe
+FRO;Faroe Islands;Îles Féroé;Europe;Europe;Northern Europe
+FIN;Finland;Finlande;Europe;Europe;Northern Europe
+FRA;France;France;Europe;Europe;Western Europe
+GEO;Georgia;Géorgie;Europe;Asia;Western Asia
+DEU;Germany;Allemagne;Europe;Europe;Western Europe
+GIB;Gibraltar;Gibraltar;Europe;Europe;Southern Europe
+GRC;Greece;Grèce;Europe;Europe;Southern Europe
+VAT;Holy See;État de la Cité du Vatican;Europe;Europe;Southern Europe
+HUN;Hungary;Hongrie;Europe;Europe;Eastern Europe
+ISL;Iceland;Islande;Europe;Europe;Northern Europe
+IRL;Ireland;Irlande;Europe;Europe;Northern Europe
+IMN;Isle of Man;Île de Man;Europe;Europe;Northern Europe
+ISR;Israel;Israël;Europe;Asia;Western Asia
+ITA;Italy;Italie;Europe;Europe;Southern Europe
+KAZ;Kazakhstan;Kazakhstan;Europe;Asia;Central Asia
+KGZ;Kyrgyzstan;Kirghizstan;Europe;Asia;Central Asia
+LVA;Latvia;Lettonie;Europe;Europe;Northern Europe
+LIE;Liechtenstein;Liechtenstein;Europe;Europe;Western Europe
+LTU;Lithuania;Lituanie;Europe;Europe;Northern Europe
+LUX;Luxembourg;Luxembourg;Europe;Europe;Western Europe
+MLT;Malta;Malte;Europe;Europe;Southern Europe
+MCO;Monaco;Monaco;Europe;Europe;Western Europe
+MNE;Montenegro;Monténégro;Europe;Europe;Southern Europe
+NLD;Netherlands;Pays-Bas;Europe;Europe;Western Europe
+NOR;Norway;Norvège;Europe;Europe;Northern Europe
+POL;Poland;Pologne;Europe;Europe;Eastern Europe
+PRT;Portugal;Portugal;Europe;Europe;Southern Europe
+MDA;Republic of Moldova;Moldavie;Europe;Europe;Eastern Europe
+MKD;Republic of North Macedonia;Macédoine du Nord;Europe;Europe;Southern Europe
+ROU;Romania;Roumanie;Europe;Europe;Eastern Europe
+RUS;Russian Federation;Russie;Europe;Europe;Eastern Europe
+SMR;San Marino;Saint-Marin;Europe;Europe;Southern Europe
+SRB;Serbia;Serbie;Europe;Europe;Southern Europe
+HIST_SCG;Serbia and Montenegro;Serbie-et-Monténégro;Europe;Europe;Southern Europe
+SVK;Slovakia;Slovaquie;Europe;Europe;Eastern Europe
+SVN;Slovenia;Slovénie;Europe;Europe;Southern Europe
+ESP;Spain;Espagne;Europe;Europe;Southern Europe
+SWE;Sweden;Suède;Europe;Europe;Northern Europe
+CHE;Switzerland;Suisse;Europe;Europe;Western Europe
+TJK;Tajikistan;Tadjikistan;Europe;Asia;Central Asia
+TUR;Turkey;Turquie;Europe;Asia;Western Asia
+TKM;Turkmenistan;Turkménistan;Europe;Asia;Central Asia
+UKR;Ukraine;Ukraine;Europe;Europe;Eastern Europe
+GBR;United Kingdom of Great Britain and Northern Ireland;Royaume-Uni;Europe;Europe;Northern Europe
+UZB;Uzbekistan;Ouzbékistan;Europe;Asia;Central Asia
+BGD;Bangladesh;Bangladesh;South-East Asia;Asia;Southern Asia
+BTN;Bhutan;Bhoutan;South-East Asia;Asia;Southern Asia
+PRK;Democratic People's Republic of Korea;Corée du Nord;South-East Asia;Asia;Eastern Asia
+IND;India;Inde;South-East Asia;Asia;Southern Asia
+IDN;Indonesia;Indonésie;South-East Asia;Asia;South-eastern Asia
+MDV;Maldives;Maldives;South-East Asia;Asia;Southern Asia
+MMR;Myanmar;Myanmar (Birmanie);South-East Asia;Asia;South-eastern Asia
+NPL;Nepal;Népal;South-East Asia;Asia;Southern Asia
+LKA;Sri Lanka;Sri Lanka;South-East Asia;Asia;Southern Asia
+THA;Thailand;Thaïlande;South-East Asia;Asia;South-eastern Asia
+TLS;Timor-Leste;Timor oriental;South-East Asia;Asia;South-eastern Asia
+ASM;American Samoa;Samoa américaines;Western Pacific;Oceania;Polynesia
+AUS;Australia;Australie;Western Pacific;Oceania;Australia and New Zealand
+BRN;Brunei Darussalam;Brunei;Western Pacific;Asia;South-eastern Asia
+KHM;Cambodia;Cambodge;Western Pacific;Asia;South-eastern Asia
+CHN;China;Chine;Western Pacific;Asia;Eastern Asia
+HKG;China, Hong Kong SAR;R.A.S. chinoise de Hong Kong;Western Pacific;Asia;Eastern Asia
+MAC;China, Macao SAR;R.A.S. chinoise de Macao;Western Pacific;Asia;Eastern Asia
+['CHN', 'TWN'];China, Taiwan Province of;China, Taiwan Province of;Western Pacific;['Asia', 'Asia'];['Eastern Asia', 'Eastern Asia']
+CHN;China, mainland;Chine;Western Pacific;Asia;Eastern Asia
+COK;Cook Islands;Îles Cook;Western Pacific;Oceania;Polynesia
+FJI;Fiji;Fidji;Western Pacific;Oceania;Melanesia
+PYF;French Polynesia;Polynésie française;Western Pacific;Oceania;Polynesia
+GUM;Guam;Guam;Western Pacific;Oceania;Micronesia
+JPN;Japan;Japon;Western Pacific;Asia;Eastern Asia
+KIR;Kiribati;Kiribati;Western Pacific;Oceania;Micronesia
+LAO;Lao People's Democratic Republic;Laos;Western Pacific;Asia;South-eastern Asia
+MYS;Malaysia;Malaisie;Western Pacific;Asia;South-eastern Asia
+MHL;Marshall Islands;Îles Marshall;Western Pacific;Oceania;Micronesia
+FSM;Micronesia (Federated States of);Micronésie;Western Pacific;Oceania;Micronesia
+MNG;Mongolia;Mongolie;Western Pacific;Asia;Eastern Asia
+NRU;Nauru;Nauru;Western Pacific;Oceania;Polynesia
+NCL;New Caledonia;Nouvelle-Calédonie;Western Pacific;Oceania;Melanesia
+NZL;New Zealand;Nouvelle-Zélande;Western Pacific;Oceania;Australia and New Zealand
+NIU;Niue;Niue;Western Pacific;Oceania;Polynesia
+MNP;Northern Mariana Islands;Îles Mariannes du Nord;Western Pacific;Oceania;Micronesia
+PLW;Palau;Palaos;Western Pacific;Oceania;Micronesia
+PNG;Papua New Guinea;Papouasie-Nouvelle-Guinée;Western Pacific;Oceania;Melanesia
+PHL;Philippines;Philippines;Western Pacific;Asia;South-eastern Asia
+KOR;Republic of Korea;Corée du Sud;Western Pacific;Asia;Eastern Asia
+WSM;Samoa;Samoa;Western Pacific;Oceania;Polynesia
+SGP;Singapore;Singapour;Western Pacific;Asia;South-eastern Asia
+SLB;Solomon Islands;Îles Salomon;Western Pacific;Oceania;Melanesia
+TKL;Tokelau;Tokelau;Western Pacific;Oceania;Polynesia
+TON;Tonga;Tonga;Western Pacific;Oceania;Polynesia
+TUV;Tuvalu;Tuvalu;Western Pacific;Oceania;Polynesia
+VUT;Vanuatu;Vanuatu;Western Pacific;Oceania;Melanesia
+VNM;Viet Nam;Viêt Nam;Western Pacific;Asia;South-eastern Asia
+WLF;Wallis and Futuna Islands;Wallis-et-Futuna;Western Pacific;Oceania;Polynesia

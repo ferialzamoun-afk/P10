@@ -1,0 +1,11 @@
+{
+  "name": "Thème Bleu Accessible",
+  "dataColors": [
+    "#003366",  // Bleu foncé (zones critiques)
+    "#0066CC",  // Bleu moyen (séries principales)
+    "#6699CC",  // Bleu clair (zones secondaires)
+    "#CCE5FF"   // Bleu très clair (arrière-plans)
+  ],
+  "background": "#FFFFFF",
+  "foreground": "#003366"
+}

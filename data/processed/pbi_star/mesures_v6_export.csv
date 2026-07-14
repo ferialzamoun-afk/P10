@@ -1,0 +1,1855 @@
+Table,Measure,DisplayFolder,IsHidden,FormatString,Expression
+Fact_KPI_Monde,Coeff k WASH,,False,,"
+VAR taux_officiel_2016 =
+    CALCULATE(
+        AVERAGE(Fact_KPI_Monde[mortalite_wash_pour_100k]),
+        REMOVEFILTERS(dim_annee_star_fr),
+        dim_annee_star_fr[annee] = 2016
+    )
+VAR taux_brut_2016 =
+    CALCULATE(
+        [Taux WASH brut],
+        REMOVEFILTERS(dim_annee_star_fr),
+        dim_annee_star_fr[annee] = 2016
+    )
+RETURN
+    DIVIDE(taux_officiel_2016, taux_brut_2016)"
+Fact_KPI_Monde,Taux WASH brut,,False,,"
+DIVIDE(
+    SUM(Fact_KPI_Monde[deces_wash]),
+    SUM(Fact_KPI_Monde[population_totale])
+) * 100000"
+Fact_KPI_Monde,Taux WASH pour 100k (stability filtered),,False,,"
+DIVIDE(
+    [Décès WASH (filtrés stabilité)],
+    CALCULATE(
+        SUM(fact_dashboard_star_fr[population_totale])
+    )
+) * 100000"
+Fact_KPI_Monde,Taux mortalité WASH (final),,False,,"
+IF(
+    SELECTEDVALUE(dim_annee_star_fr[annee]) = 2016,
+    AVERAGE(Fact_KPI_Monde[mortalite_wash_pour_100k]),
+    [Taux_mortalité_WASH_ajusté]
+)"
+Fact_KPI_Monde,Taux_mortalité_WASH_ajusté,,False,,"coalesce(
+[Taux WASH brut] * [Coeff k WASH],0)"
+Mesures,Accès eau potable % moyen,1- Chiffres clés,False,,"COALESCE(
+AVERAGE ( Fact_KPI_Monde[acces_eau_potable_pct] ),0)
+"
+Mesures,Deces_WASH_Affiches,1- Chiffres clés,False,,"
+VAR codePop = SELECTEDVALUE(Filtre_population[CodePop], 0)
+RETURN
+SUMX(
+    VALUES(dim_pays_star_fr[iso3]),
+    VAR pop =
+        CALCULATE(MAX(fact_dashboard_star_fr[population_totale]))
+    VAR deces =
+        CALCULATE(
+            SUM(fact_dashboard_star_fr[deces_wash]),
+            KEEPFILTERS(fact_dashboard_star_fr[annee] = 2016)
+        )
+    VAR okPop =
+        SWITCH(
+            codePop,
+            0, TRUE(),
+            1, NOT ISBLANK(pop) && pop > 500000,
+            2, NOT ISBLANK(pop) && pop <= 500000,
+            9, ISBLANK(pop),
+            TRUE()
+        )
+    RETURN IF(okPop, COALESCE(deces, 0), 0)
+)"
+Mesures,Deces_WASH_Eligibles,1- Chiffres clés,False,,"
+VAR codePop = SELECTEDVALUE(Filtre_population[CodePop], 0)
+RETURN
+SUMX(
+FILTER(
+VALUES(dim_pays_star_fr[iso3]),
+VAR pop = CALCULATE(MAX(fact_dashboard_star_fr[population_totale]))
+RETURN 
+SWITCH(
+codePop,
+0, TRUE(),
+1, NOT ISBLANK(pop) && pop > 500000,
+2, NOT ISBLANK(pop) && pop <= 500000,
+9, ISBLANK(pop),
+TRUE()
+)
+),
+CALCULATE(
+        COALESCE(SUM(fact_dashboard_star_fr[deces_wash]), 0),
+        KEEPFILTERS(fact_dashboard_star_fr[annee] = 2016)
+    )
+)
+"
+Mesures,Deces_WASH_Eligibles_Histo,1- Chiffres clés,False,,"
+VAR codePop = SELECTEDVALUE(Filtre_population[CodePop], 0)
+RETURN
+SUMX(
+    VALUES(dim_pays_star_fr[iso3]),
+    VAR pop = CALCULATE(MAX(fact_dashboard_star_fr[population_totale]))
+    VAR deces = CALCULATE(SUM(fact_dashboard_star_fr[deces_wash]), fact_dashboard_star_fr[annee] = 2016)
+    VAR okPop =
+        SWITCH(
+            codePop,
+            0, TRUE(),
+            1, NOT ISBLANK(pop) && pop > 500000,
+            2, NOT ISBLANK(pop) && pop <= 500000,
+            9, ISBLANK(pop),
+            TRUE()
+        )
+    RETURN IF(okPop, COALESCE(deces, 0), 0)
+)"
+Mesures,Décès WASH (filtrés stabilité),1- Chiffres clés,False,,"
+VAR choix =
+    SELECTEDVALUE('Filtre_stabilité_politique'[Option], ""Inclure les pays instables"")
+VAR seuil = [Seuil stabilité]
+VAR pays_gardes =
+    FILTER(
+        VALUES(dim_pays_star_fr[iso3]),
+        CALCULATE(AVERAGE(Fact_KPI_Monde[stabilite_politique])) >= seuil
+            && NOT(dim_pays_star_fr[iso3] IN {""HKG"", ""MAC"", ""TWN""})
+            && dim_pays_star_fr[iso3] <> ""CHN""
+    )
+RETURN
+IF(
+    choix = ""Exclure les pays instables"",
+    CALCULATE(SUM(Fact_KPI_Monde[deces_wash]), KEEPFILTERS(pays_gardes)),
+    CALCULATE(
+        FORMAT(SUM(Fact_KPI_Monde[deces_wash]),""0.0""),
+        NOT(dim_pays_star_fr[iso3] IN {""HKG"", ""MAC"", ""TWN""}),
+        dim_pays_star_fr[iso3] <> ""CHN""
+    )
+)"
+Mesures,Décès WASH estimés,1- Chiffres clés,False,,"COALESCE(
+SUM ( Fact_KPI_Monde[deces_wash] ),0)"
+Mesures,Ecart basic vs safely managed moyen,1- Chiffres clés,False,0,"
+COALESCE (
+    VAR AnneeRefDisponible =
+        MAXX (
+            FILTER (
+                ALLSELECTED ( dim_annee_star_fr[annee] ),
+                NOT ISBLANK (
+                    CALCULATE (
+                        AVERAGE ( Fact_KPI_Monde[ecart_basique_safely_managed_pct] ),
+                        dim_action_star_fr[action_prioritaire] <> ""Non classe""
+                    )
+                )
+            ),
+            dim_annee_star_fr[annee]
+        )
+    RETURN
+    CALCULATE ( 
+            AVERAGE ( Fact_KPI_Monde[ecart_basique_safely_managed_pct]  ),
+            dim_annee_star_fr[annee] = AnneeRefDisponible,
+            dim_action_star_fr[action_prioritaire] <> ""Non classe""
+        ),
+    0
+)"
+Mesures,Mortalilte max,1- Chiffres clés,False,,Max(Fact_KPI_Monde[mortalite_wash_pour_100k])
+Mesures,Mortalilte min,1- Chiffres clés,False,,Min(Fact_KPI_Monde[mortalite_wash_pour_100k])
+Mesures,Mortalité WASH pour 100k moyenne affichée,1- Chiffres clés,False,,"FORMAT(
+    COALESCE(AVERAGE(Fact_KPI_Monde[mortalite_wash_pour_100k]), 0),
+    ""0.0"")
+"
+Mesures,Nb pays,1- Chiffres clés,False,0,"COALESCE(
+DISTINCTCOUNT ( Fact_KPI_Monde[pays] ),0)"
+Mesures,Part rurale,1- Chiffres clés,False,,"
+VAR y = [Année_Active]
+RETURN
+CALCULATE(
+    SUM(fact_dashboard_star_fr[population_rurale]),
+    KEEPFILTERS(fact_dashboard_star_fr[annee] = y)
+)"
+Mesures,Part urbaine,1- Chiffres clés,False,0,"VAR y = [Année_Active]
+RETURN
+CALCULATE(
+ SUM(fact_dashboard_star_fr[population_totale]) - SUM(fact_dashboard_star_fr[population_rurale]) ,
+    KEEPFILTERS(fact_dashboard_star_fr[annee] = y)
+)"
+Mesures,Population en millions,1- Chiffres clés,False,,"
+DIVIDE ( [Population totale], 1000000 )"
+Mesures,Population rurale,1- Chiffres clés,False,0,"
+SUM ( Fact_KPI_Monde[population_rurale] )"
+Mesures,Population rurale % moyenne,1- Chiffres clés,False,,"
+AVERAGE ( Fact_KPI_Monde[part_rurale_pct] )"
+Mesures,Population totale,1- Chiffres clés,False,0,"COALESCE(
+SUM ( Fact_KPI_Monde[population_totale] ),0)"
+Mesures,Population totale max,1- Chiffres clés,False,0,MAX('Fact_KPI_Monde'[population_totale])
+Mesures,Population urbaine % moyenne,1- Chiffres clés,False,,"
+100 - [Population rurale % moyenne]"
+Mesures,Population_Filtree,1- Chiffres clés,False,,"
+CALCULATE(
+    SUM(Fact_KPI_Monde[population_totale]),
+    FILTER(VALUES(dim_pays_star_fr[iso3]), [Afficher_Pays_Eligibles] = 1)
+)"
+Mesures,Score création moyen,1- Chiffres clés,False,,"
+AVERAGE ( Fact_KPI_Monde[score_creation_services] )"
+Mesures,Score gouvernance moyen,1- Chiffres clés,False,,"
+AVERAGE ( Fact_KPI_Monde[score_gouvernance] )"
+Mesures,Score modernisation moyen,1- Chiffres clés,False,,"
+AVERAGE ( Fact_KPI_Monde[score_modernisation_services] )"
+Mesures,Service safely managed % moyen,1- Chiffres clés,False,,"AVERAGEX(
+    VALUES(dim_pays_star_fr[cle_pays]),
+AVERAGE ( Fact_KPI_Monde[service_safely_managed_pct] ))"
+Mesures,Seuil effectivité sélectionné,1- Chiffres clés,False,0,"SELECTEDVALUE(Seuil_Effectiveness_Int[Value], 0)"
+Mesures,Seuil stabilité,1- Chiffres clés,False,,"DIVIDE(SELECTEDVALUE(Seuil_Stab_Int[Value], 0), 100)"
+Mesures,Stabilite politique moyenne unique filtree,1- Chiffres clés,False,,"
+VAR choix =
+    SELECTEDVALUE(
+        'Filtre_stabilité_politique'[Option],
+        ""Inclure les pays instables""
+    )
+VAR seuil = [Seuil stabilité]   
+VAR Base =
+    CALCULATETABLE(
+        SUMMARIZE(
+            fact_dashboard_star_fr,
+            fact_dashboard_star_fr[pays],
+            fact_dashboard_star_fr[annee],
+            ""stb"", MAX(fact_dashboard_star_fr[stabilite_politique])
+        ),
+        NOT ( fact_dashboard_star_fr[iso3] IN { ""HKG"", ""MAC"", ""TWN"" } ),
+        fact_dashboard_star_fr[iso3] <> ""CHN""
+    )
+VAR BaseFiltree =
+    FILTER(
+        Base,
+        choix <> ""Exclure les pays instables"" || [stb] >= seuil
+    )
+
+RETURN 
+  IF(
+        ISEMPTY(BaseFiltree),
+        BLANK(),
+        AVERAGEX(BaseFiltree, [stb])
+    ) "
+Mesures,Taux_WASH_100k_tmp,1- Chiffres clés,False,,"
+DIVIDE(
+    SUM(Fact_KPI_Monde[deces_wash]),
+    SUM(Fact_KPI_Monde[population_totale]),
+    BLANK()
+) * 100000"
+Mesures,Tendance Mortalité WASH (TVAM),1- Chiffres clés,False,,"
+VAR AnneesUniques = DISTINCT(dim_annee_star_fr[annee])  
+VAR AnneeDebut = MINX(AnneesUniques, [annee])           
+VAR AnneeFin = MAXX(AnneesUniques, [annee])             
+VAR MortaliteDebut =
+    CALCULATE(
+        AVERAGE(Fact_KPI_Monde[mortalite_wash_pour_100k]),
+        fact_dashboard_star_fr[annee] = AnneeDebut
+    )
+VAR MortaliteFin =
+    CALCULATE(
+        AVERAGE(Fact_KPI_Monde[mortalite_wash_pour_100k]),
+        fact_dashboard_star_fr[annee] = AnneeFin
+    )
+VAR NbAnnees = AnneeFin - AnneeDebut
+RETURN
+    DIVIDE(
+        (MortaliteFin - MortaliteDebut),
+        MortaliteDebut * NbAnnees,
+        BLANK()
+    )"
+Mesures,Action prioritaire dominante,2- KPI Métiers,False,,"
+SELECTEDVALUE ( dim_action_star_fr[action_prioritaire], ""Plusieurs actions"" )"
+Mesures,Afficher_Pays_Eligibles,2- KPI Métiers,False,0,"
+VAR iso = SELECTEDVALUE(dim_pays_star_fr[iso3])
+VAR pop = CALCULATE(MAX(Fact_KPI_Monde[population_totale]))
+VAR choix_pop = SELECTEDVALUE(dim_pays_star_fr[Eligible_pop_500k], ""Tous"")
+VAR choix_stab = SELECTEDVALUE('Filtre_stabilité_politique'[Option], ""Inclure les pays instables"")
+VAR seuil = [Seuil stabilité]
+VAR stb = CALCULATE(AVERAGE(Fact_KPI_Monde[stabilite_politique]))
+
+VAR passe_pop =
+    SWITCH(
+        choix_pop,
+        ""Oui (>500k)"", pop >= 500000,
+        ""Non (<=500k)"", pop <= 500000,
+        TRUE()
+    )
+
+VAR passe_stab =
+    IF(choix_stab = ""Exclure les pays instables"", stb >= seuil, TRUE())
+
+VAR passe_geo =
+    NOT (iso IN {""CHN"",""HKG"",""MAC"",""TWN""})
+
+RETURN
+IF(passe_pop && passe_stab && passe_geo, 1, 0)"
+Mesures,Afficher_Top10_Exact,2- KPI Métiers,False,0,"
+VAR T =
+    TOPN(
+        10,
+        ADDCOLUMNS(
+            VALUES(dim_pays_star_fr[iso3]),
+            ""Score"", CALCULATE([Score_Final_100])
+        ),
+        [Score], DESC,
+        dim_pays_star_fr[iso3], ASC
+    )
+RETURN
+IF(
+    CONTAINS(T, dim_pays_star_fr[iso3], SELECTEDVALUE(dim_pays_star_fr[iso3])),
+    1,
+    0
+)"
+Mesures,Nb_pays_oui_500k,2- KPI Métiers,False,0,"COALESCE(
+CALCULATE(
+    DISTINCTCOUNT(dim_pays_star_fr[iso3]),
+    dim_pays_star_fr[Eligible_pop_500k] = ""Oui (>500k)""
+),0)"
+Mesures,Nb_pays_visibles,2- KPI Métiers,False,0,"COALESCE(
+DISTINCTCOUNT(dim_pays_star_fr[iso3]),0)"
+Mesures,Rang_Top10_Candidats,2- KPI Métiers,False,0,"
+VAR v = [Décès WASH (filtrés stabilité)]
+RETURN
+IF(
+    [Afficher_Pays_Eligibles] = 1 && NOT ISBLANK(v),
+    RANKX(
+        FILTER(
+            ALLSELECTED(dim_pays_star_fr[iso3]),
+            [Afficher_Pays_Eligibles] = 1
+        ),
+        [Décès WASH (filtrés stabilité)],
+        ,
+        DESC,
+        DENSE
+    ),
+    BLANK()
+)"
+Mesures,% mortalite eau insalubre 2016,2- KPI Métiers\Fact_KPI,False,0.000000\ %;-0.000000\ %;0.000000\ %,"
+VAR AnneeRef = 2016
+VAR TotalDeces =
+CALCULATE(
+SUM(Fact_KPI_Monde[deces_wash]),
+Fact_KPI_Monde[annee] = AnneeRef
+)
+VAR TotalPopulation =
+CALCULATE(
+[Population totale KPI],
+Fact_KPI_Monde[annee] = AnneeRef
+)
+RETURN
+COALESCE(
+DIVIDE(TotalDeces, TotalPopulation, 0),
+0
+)"
+Mesures,Acces eau potable % moyen KPI,2- KPI Métiers\Fact_KPI,False,0.0,"
+COALESCE (
+    VAR AnneeRefDisponible =
+        MAXX (
+            FILTER (
+                ALLSELECTED ( dim_annee_star_fr[annee] ),
+                NOT ISBLANK (
+                    CALCULATE (
+                        AVERAGE ( Fact_KPI_Monde[acces_eau_potable_pct] ),
+                        dim_action_star_fr[action_prioritaire] <> ""Non classe""
+                    )
+                )
+            ),
+            dim_annee_star_fr[annee]
+        )
+    RETURN
+    CALCULATE ( 
+            AVERAGE ( Fact_KPI_Monde[acces_eau_potable_pct]  ),
+            dim_annee_star_fr[annee] = AnneeRefDisponible,
+            dim_action_star_fr[action_prioritaire] <> ""Non classe""
+        ),
+    0
+)"
+Mesures,Annee ref KPI,2- KPI Métiers\Fact_KPI,False,0,"
+SELECTEDVALUE ( dim_annee_star_fr[annee], 2016 )"
+Mesures,Evolution population (%),2- KPI Métiers\Fact_KPI,False,,"
+DIVIDE(
+[Population totale KPI] - [Population totale N-1],
+[Population totale N-1],
+0
+)"
+Mesures,Population avec acces eau potable KPI,2- KPI Métiers\Fact_KPI,False,0,"
+VAR AnneeCourante = SELECTEDVALUE(dim_annee_star_fr[annee], BLANK())
+RETURN
+    COALESCE(IF(
+        ISBLANK(AnneeCourante),
+        BLANK(),
+        CALCULATE(
+            SUM(Fact_KPI_Monde[acces_eau_potable_pct]), 
+            dim_annee_star_fr[annee] = AnneeCourante
+        )
+    ),0)"
+Mesures,Population mondiale totale fact_KPI,2- KPI Métiers\Fact_KPI,False,0,"
+VAR AnneRef = [Annee ref KPI]
+RETURN COALESCE(
+CALCULATE (
+SUM ( Fact_KPI_Monde[population_totale] ),
+Fact_KPI_Monde[annee] = AnneRef && NOT Fact_KPI_Monde[iso3] IN {""HKG"",""MAC"",""TWN""}
+),0)"
+Mesures,Population totale KPI,2- KPI Métiers\Fact_KPI,False,0,"
+VAR AnneeRef = [Annee ref KPI]
+RETURN
+COALESCE(
+CALCULATE(
+SUM(Fact_KPI_Monde[population_totale]),
+FILTER(
+ALL(dim_annee_star_fr[annee]),
+dim_annee_star_fr[annee] = AnneeRef
+)
+),
+0
+)"
+Mesures,Population totale N-1,2- KPI Métiers\Fact_KPI,False,0,"
+VAR AnneeN = MAX(dim_annee_star_fr[annee])
+RETURN
+COALESCE(
+CALCULATE(
+SUM(Fact_KPI_Monde[population_totale]),
+FILTER(
+ALL(dim_annee_star_fr[annee]),
+dim_annee_star_fr[annee] = AnneeN - 1
+)
+),
+0
+)"
+Mesures,Services gérés en toute sécurité % moyen KPI,2- KPI Métiers\Fact_KPI,False,0.0,"
+COALESCE (
+    VAR AnneeRefDisponible =
+        MAXX (
+            FILTER (
+                ALLSELECTED ( dim_annee_star_fr[annee] ),
+                NOT ISBLANK (
+                    CALCULATE (
+                        AVERAGE ( Fact_KPI_Monde[service_safely_managed_pct] ),
+                        dim_action_star_fr[action_prioritaire] <> ""Non classe""
+                    )
+                )
+            ),
+            dim_annee_star_fr[annee]
+        )
+    RETURN
+        CALCULATE (
+            AVERAGE ( Fact_KPI_Monde[service_safely_managed_pct] ),
+            dim_annee_star_fr[annee] = AnneeRefDisponible,
+            dim_action_star_fr[action_prioritaire] <> ""Non classe""
+        ),
+    0
+)"
+Mesures,Stabilite politique moyenne,2- KPI Métiers\Fact_KPI,False,,"FORMAT(ROUND(
+    CALCULATE(
+        COALESCE(
+            DIVIDE(
+                SUMX(
+                    Fact_KPI_Monde,
+                    Fact_KPI_Monde[population_totale] * Fact_KPI_Monde[stabilite_politique]
+                ),
+                [Population totale],
+                0
+            ),
+            0
+        ),
+        Fact_KPI_Monde[annee] = 2016
+    ),
+    1
+),""0.0"")"
+Mesures,Taux mortalite eau insalubre N-1,2- KPI Métiers\Fact_KPI,False,,"
+VAR AnneeN = MAX(dim_annee_star_fr[annee])
+RETURN
+CALCULATE(
+[% mortalite eau insalubre 2016],
+FILTER(
+ALL(dim_annee_star_fr[annee]),
+dim_annee_star_fr[annee] = AnneeN - 1
+)
+)
+
+"
+Mesures,Taux urbanisation,2- KPI Métiers\Fact_KPI,False,,"[Part urbaine (%)] - [Part rurale (%)]
+"
+Mesures,// Liste des pays de Western Pacific en 2009 et 2010 (dans la table source)Pays Western Pacific Source 2009,2- KPI Métiers\Fact_KPI\Graphique combinés,False,,"
+CONCATENATEX(
+    FILTER(
+        fact_dashboard_star_fr,
+        fact_dashboard_star_fr[region] = ""Western Pacific""
+        && fact_dashboard_star_fr[annee] = 2009
+    ),
+    fact_dashboard_star_fr[pays] & "" ("" & fact_dashboard_star_fr[population_totale] & ""M); "",
+    UNICHAR(10)
+)
+
+"
+Mesures,// Vérifie si CHN est présent dans Western Pacific en 2010CHN dans Western Pacific 2010,2- KPI Métiers\Fact_KPI\Graphique combinés,False,0,"
+COUNTROWS(
+    FILTER(
+        fact_dashboard_star_fr,
+        fact_dashboard_star_fr[region] = ""Western Pacific""
+        && fact_dashboard_star_fr[annee] = 2010
+        && fact_dashboard_star_fr[iso3] = ""CHN""
+    )
+)"
+Mesures,Annee base selection,2- KPI Métiers\Fact_KPI\Graphique combinés,False,0,"
+MINX(
+    ALLSELECTED(dim_annee_star_fr[annee]),
+    dim_annee_star_fr[annee]
+)"
+Mesures,Indice base 100 - Stabilite politique,2- KPI Métiers\Fact_KPI\Graphique combinés,False,,"
+VAR BaseYear = [Annee base selection]
+VAR ValeurBase =
+    CALCULATE(
+        [Stabilite politique moyenne (annee)],
+        FILTER(
+            ALLSELECTED(dim_annee_star_fr[annee]),
+            dim_annee_star_fr[annee] = BaseYear
+        )
+    )
+RETURN
+100 * DIVIDE([Stabilite politique moyenne (annee)], ValeurBase, 0)"
+Mesures,Population Totale (par année),2- KPI Métiers\Fact_KPI\Graphique combinés,False,0,"
+SUM(Fact_KPI_Monde[population_totale])"
+Mesures,Population en Base 100 (par région),2- KPI Métiers\Fact_KPI\Graphique combinés,False,,"
+VAR AnneeRef = 2017  
+VAR AnneeCourante = SELECTEDVALUE(dim_annee_star_fr[annee], BLANK())
+VAR PopRef =
+    CALCULATE(
+        SUM(fact_dashboard_star_fr[population_totale]),
+        dim_annee_star_fr[annee] = AnneeRef,
+        ALLSELECTED(dim_pays_star_fr)  )
+VAR PopCourante =
+    CALCULATE(
+        SUM(fact_dashboard_star_fr[population_totale]),
+        dim_annee_star_fr[annee] = AnneeCourante,
+        ALLSELECTED(dim_pays_star_fr)
+    )
+RETURN COalesce(
+    IF(
+        ISBLANK(PopRef) || ISBLANK(PopCourante),
+        BLANK(),
+        (PopCourante / PopRef) * 100  // Base 100 = (Population année courante / Population année de référence) * 100
+    ),0)"
+Mesures,Stabilite politique moyenne (annee),2- KPI Métiers\Fact_KPI\Graphique combinés,False,,"
+DIVIDE(
+    SUMX(
+        Fact_KPI_Monde,
+        Fact_KPI_Monde[population_totale] * Fact_KPI_Monde[stabilite_politique]
+    ),
+    [Population Totale (par année)],
+    0
+)"
+Mesures,Stabilité Politique (par année),2- KPI Métiers\Fact_KPI\Graphique combinés,False,,"
+VAR AnneeCourante = SELECTEDVALUE(dim_annee_star_fr[annee], BLANK())
+RETURN
+    IF(
+        ISBLANK(AnneeCourante),
+        BLANK(),
+        CALCULATE(
+            AVERAGE(Fact_KPI_Monde[stabilite_politique])*100,
+            dim_annee_star_fr[annee] = AnneeCourante
+        )
+    )"
+Mesures,Taux Accès Eau potable (par année),2- KPI Métiers\Fact_KPI\Graphique combinés,False,,"
+VAR AnneeCourante = SELECTEDVALUE(dim_annee_star_fr[annee], BLANK())
+RETURN
+    IF(
+        ISBLANK(AnneeCourante),
+        BLANK(),
+        CALCULATE(
+            AVERAGE(Fact_KPI_Monde[acces_eau_potable_pct]),
+            dim_annee_star_fr[annee] = AnneeCourante
+        )
+    )"
+Mesures,Taux Accès Service Eau (par année),2- KPI Métiers\Fact_KPI\Graphique combinés,False,,"
+VAR AnneeCourante = SELECTEDVALUE(dim_annee_star_fr[annee], BLANK())
+RETURN
+    IF(
+        ISBLANK(AnneeCourante),
+        BLANK(),
+        CALCULATE(
+            AVERAGE(Fact_KPI_Monde[service_safely_managed_pct]),
+            dim_annee_star_fr[annee] = AnneeCourante
+        )
+    )"
+Mesures,Nb lignes Non classe,2- KPI Métiers\Fact_dashboard_star_fr,False,0,"
+CALCULATE (
+    COUNTROWS ( Fact_KPI_Monde ),
+    dim_action_star_fr[action_prioritaire] = ""Non classe""
+)"
+Mesures,Nb lignes hors Non classe,2- KPI Métiers\Fact_dashboard_star_fr,False,0,"
+CALCULATE (
+    COUNTROWS ( Fact_KPI_Monde ),
+    dim_action_star_fr[action_prioritaire] <> ""Non classe""
+)"
+Mesures,Nb pays Non classe,2- KPI Métiers\Fact_dashboard_star_fr,False,0,"
+CALCULATE (
+    DISTINCTCOUNT ( Fact_KPI_Monde[cle_pays] ),
+    dim_action_star_fr[action_prioritaire] = ""Non classe""
+)"
+Mesures,Nb pays hors Non classe,2- KPI Métiers\Fact_dashboard_star_fr,False,0,"
+CALCULATE (
+    DISTINCTCOUNT ( Fact_KPI_Monde[cle_pays] ),
+    dim_action_star_fr[action_prioritaire] <> ""Non classe""
+)"
+Mesures,Part de population rurale estimée,2- KPI Métiers\Fact_dashboard_star_fr,False,,"
+DIVIDE ( [Population rurale], [Population totale] ) * 100
+"
+Mesures,Part de population urbaine estimée,2- KPI Métiers\Fact_dashboard_star_fr,False,,"
+DIVIDE ( [Population urbaine % moyenne], [Population totale] )
+"
+Mesures,Population rurale hors Non classe,2- KPI Métiers\Fact_dashboard_star_fr,False,0,"
+CALCULATE (
+    [Population rurale],
+    dim_action_star_fr[action_prioritaire] <> ""Non classe""
+)"
+Mesures,Population sans accès basique estimée,2- KPI Métiers\Fact_dashboard_star_fr,False,,"
+COALESCE(
+    CALCULATE(
+        SUMX(
+            Fact_KPI_Monde,
+            Fact_KPI_Monde[population_totale]
+                * (1 - DIVIDE(Fact_KPI_Monde[acces_eau_potable_pct], 100))
+        ),
+        fact_dashboard_star_fr[annee] = 2018
+    ),
+    0
+)"
+Mesures,Population totale Non classe,2- KPI Métiers\Fact_dashboard_star_fr,False,0,"
+CALCULATE (
+    [Population totale],
+    dim_action_star_fr[action_prioritaire] = ""Non classe""
+)"
+Mesures,Population totale hors Non classe,2- KPI Métiers\Fact_dashboard_star_fr,False,0,"
+CALCULATE (
+    [Population totale],
+    dim_action_star_fr[action_prioritaire] <> ""Non classe""
+)"
+Mesures,Population à moderniser estimée,2- KPI Métiers\Fact_dashboard_star_fr,False,,"
+SUMX (
+    Fact_KPI_Monde,
+    Fact_KPI_Monde[population_totale]
+        * DIVIDE ( Fact_KPI_Monde[ecart_basique_safely_managed_pct], 100 )
+)"
+Mesures,Score gouvernance exact,2- KPI Métiers\Fact_dashboard_star_fr,False,,"
+100 * [Score effectivite gouvernementale exacte]"
+Mesures,Score prioritaire moyen,2- KPI Métiers\Fact_dashboard_star_fr,False,,"COALESCE(
+SWITCH (
+    SELECTEDVALUE ( dim_action_star_fr[action_prioritaire] ),
+    ""Créer ou étendre les services d'eau"", [Score création moyen],
+    ""Moderniser les services d'eau"", [Score modernisation moyen],
+    ""Renforcer la gouvernance politique"", [Score gouvernance moyen],
+    BLANK ()
+),0)"
+Mesures,proxy_efficacite_politique_eau,2- KPI Métiers\Fact_dashboard_star_fr,False,,[Accès eau potable % moyen KPI] - [Mortalité WASH pour 100k KPI]
+Mesures,Accès eau % affichage,3- DASHBOARD\Page1,False,,"IF(ISBLANK([Accès eau potable % moyen]), ""ND"", FORMAT([Accès eau potable % moyen], ""0,00""))"
+Mesures,Accès eau potable % moyen KPI,3- DASHBOARD\Page1,False,0,"
+COALESCE (
+    VAR AnneeRefDisponible =
+        MAXX (
+            FILTER (
+                ALLSELECTED ( dim_annee_star_fr[annee] ),
+                NOT ISBLANK (
+                    CALCULATE (
+                        AVERAGE ( Fact_KPI_Monde[acces_eau_potable_pct] ),
+                        dim_action_star_fr[action_prioritaire] <> ""Non classe""
+                    )
+                )
+            ),
+            dim_annee_star_fr[annee]
+        )
+    RETURN
+        CALCULATE (
+            AVERAGE ( Fact_KPI_Monde[acces_eau_potable_pct] ),
+            dim_annee_star_fr[annee] = AnneeRefDisponible,
+            dim_action_star_fr[action_prioritaire] <> ""Non classe""
+        ),
+    0
+)"
+Mesures,Afficher pays selon stabilité,3- DASHBOARD\Page1,False,0,"
+VAR choix =
+    SELECTEDVALUE(
+        'Filtre_stabilité_politique'[Option],
+        ""Inclure les pays instables""
+    )
+VAR seuil = [Seuil stabilité]
+VAR stabilite = AVERAGE(Fact_KPI_Monde[stabilite_politique])
+RETURN
+    IF(
+        choix = ""Exclure les pays instables"" && stabilite < seuil,
+        0,
+        1
+    )"
+Mesures,Année de référence accès eau KPI,3- DASHBOARD\Page1,False,0,"
+MAXX (
+    FILTER (
+        ALLSELECTED ( dim_annee_star_fr[annee] ),
+        NOT ISBLANK (
+            CALCULATE (
+                AVERAGE ( Fact_KPI_Monde[acces_eau_potable_pct] )
+            )
+        )
+    ),
+    dim_annee_star_fr[annee]
+)"
+Mesures,Année de référence commune KPI,3- DASHBOARD\Page1,False,0,"
+MAXX (
+    FILTER (
+        ALLSELECTED ( dim_annee_star_fr[annee] ),
+        NOT ISBLANK (
+            CALCULATE (
+                AVERAGE ( Fact_KPI_Monde[population_totale] )
+            )
+        )
+        && NOT ISBLANK (
+            CALCULATE (
+                AVERAGE ( Fact_KPI_Monde[acces_eau_potable_pct] )
+            )
+        )
+    ),
+    dim_annee_star_fr[annee]
+)"
+Mesures,Continent_Selectionne,3- DASHBOARD\Page1,False,,"
+SELECTEDVALUE(dim_pays_star_fr[continent], ""Sélectionnez un continent"")"
+Mesures,Couleur accès eau mixte DWFA,3- DASHBOARD\Page1,False,,"
+VAR v = [Accès eau potable % moyen]
+RETURN
+SWITCH(
+    TRUE(),
+    ISBLANK(v), ""#EAF6FD"",
+
+    -- Zone alerte (non-vertes)
+    v < 50, ""#B10026"",   -- alerte forte
+    v < 65, ""#FC4E2A"",   -- alerte modérée
+    v < 75, ""#FEB24C"",   -- vigilance
+
+    -- Zone bonne (remplace les verts par palette bleue)
+    v < 85, ""#8CCCED"",   -- bleu clair
+    v < 92, ""#2F9AD6"",   -- bleu principal
+    ""#163A59""            -- bleu soutenu
+)"
+Mesures,Couverture accès eau %,3- DASHBOARD\Page1,False,,"
+DIVIDE(
+CALCULATE(DISTINCTCOUNT(Fact_KPI_Monde[pays]), NOT(ISBLANK(Fact_KPI_Monde[acces_eau_potable_pct]))),
+CALCULATE(DISTINCTCOUNT(Fact_KPI_Monde[pays]))
+)"
+Mesures,Décès WASH estimés KPI,3- DASHBOARD\Page1,False,0,"COALESCE(
+CALCULATE (
+    SUM ( Fact_KPI_Monde[deces_wash] ),
+    dim_annee_star_fr[annee] = 2016
+),0)"
+Mesures,Info_DWFA,3- DASHBOARD\Page1,False,,"""DWFA (Drinking water for all) *Les données proviennent de sources officielles et sont conservées telles quelles. 
+Certains écarts peuvent exister selon les séries. 
+ Les métriques restent des agrégations de données pays. 
+Les territoires disposant de données ont été enrichis uniquement de leur classification géographique sur la base ISO3  pour ne pas perdre d’information analytique.Les résultats doivent être interprétés comme des signaux d’aide à la décision. """
+Mesures,Mortalité WASH pour 100k KPI,3- DASHBOARD\Page1,False,,"
+CALCULATE (
+    AVERAGE ( Fact_KPI_Monde[mortalite_wash_pour_100k] ),
+    dim_annee_star_fr[annee] = 2016
+)"
+Mesures,Moyenne Décès WASH estimés KPI,3- DASHBOARD\Page1,False,,"COALESCE(
+CALCULATE (
+    AVERAGE ( Fact_KPI_Monde[deces_wash] ),
+    dim_annee_star_fr[annee] = 2016
+),0)"
+Mesures,NombrePays_2016,3- DASHBOARD\Page1,False,0,"
+COUNTROWS(
+    FILTER(
+        Fact_KPI_Monde,
+        Fact_KPI_Monde[annee] = 2016
+        && NOT Fact_KPI_Monde[pays_source_en] in {"""","""","""",""""}  // Remplacez par votre indicateur
+    )
+)"
+Mesures,Part population rurale métier,3- DASHBOARD\Page1,False,,"
+DIVIDE ( [Population rurale hors Non classe], [Population totale hors Non classe] )"
+Mesures,Population mondiale totale KPI,3- DASHBOARD\Page1,False,,
+Mesures,Population périmètre priorisé KPI,3- DASHBOARD\Page1,False,0,"
+COALESCE (
+    VAR AnneeRef = [Année de référence accès eau KPI]
+    RETURN
+        CALCULATE (
+            SUM ( fact_dashboard_star_fr[population_totale] ),
+            dim_annee_star_fr[annee] = AnneeRef,
+            dim_action_star_fr[action_prioritaire] <> ""Non classe"",
+            fact_dashboard_star_fr[population_totale] >= 500000
+        ),
+    0
+)"
+Mesures,Population rurale totale KPI,3- DASHBOARD\Page1,False,0,"
+var popRuralePays = 
+COALESCE (
+    VAR AnneeRef = [Année de référence accès eau KPI]
+    RETURN
+        CALCULATE (
+            SUM ( fact_dashboard_star_fr[population_rurale] ),
+            dim_annee_star_fr[annee] = AnneeRef,
+            dim_action_star_fr[action_prioritaire] <> ""Non classe""
+        ),
+    0
+)
+RETURN COALESCE(
+if (popRuralePays =0, BLANK(), popRuralePays),0)"
+Mesures,Population taille scatter,3- DASHBOARD\Page1,False,,SQRT(MAX('fact_dashboard_star_fr'[population_totale]))
+Mesures,Rang_Pays_Candidat,3- DASHBOARD\Page1,False,0,"
+RANKX(
+    ALLSELECTED(dim_pays_star_fr[pays]),
+    [Décès WASH (filtrés stabilité)],
+    ,
+    DESC,
+    DENSE
+)"
+Mesures,Service géré en toute sécurité % moyen KPI,3- DASHBOARD\Page1,False,0,"
+COALESCE (
+    VAR AnneeRefDisponible =
+        MAXX (
+            FILTER (
+                ALLSELECTED ( dim_annee_star_fr[annee] ),
+                NOT ISBLANK (
+                    CALCULATE (
+                        AVERAGE ( fact_dashboard_star_fr[service_safely_managed_pct] ),
+                        dim_action_star_fr[action_prioritaire] <> ""Non classe""
+                    )
+                )
+            ),
+            dim_annee_star_fr[annee]
+        )
+    RETURN
+        CALCULATE (
+            AVERAGE ( fact_dashboard_star_fr[service_safely_managed_pct] ),
+            dim_annee_star_fr[annee] = AnneeRefDisponible,
+            dim_action_star_fr[action_prioritaire] <> ""Non classe""
+        ),
+    0
+)"
+Mesures,Seuil stabilité sélectionné,3- DASHBOARD\Page1,False,,"
+SELECTEDVALUE(Seuil_Stab_Int[Value], 0)"
+Mesures,Stabilité politique moyenne KPI,3- DASHBOARD\Page1,False,0.00,"
+VAR AnneeRef = [Année de référence accès eau KPI]
+RETURN 
+    CALCULATE (
+        AVERAGE ( fact_dashboard_star_fr[stabilite_politique] ),
+        dim_annee_star_fr[annee] = AnneeRef
+    )"
+Mesures,Badge alerte mortalité - couleur,3- DASHBOARD\Page1\Carte,False,,"-- Badge couleur (rouge/orange/bleu)
+VAR m = [Mortalité WASH pour 100k KPI]
+RETURN
+SWITCH(
+    TRUE(),
+    ISBLANK(m), ""#6E8597"",   -- ND
+    m >= 20, ""#B10026"",      -- rouge
+    m >= 5, ""#FEB24C"",       -- orange
+    ""#2F9AD6""                -- bleu
+)"
+Mesures,Badge alerte mortalité - texte,3- DASHBOARD\Page1\Carte,False,,"-- Badge texte (infobulle)
+VAR m = [Mortalité WASH pour 100k KPI]
+RETURN
+SWITCH(
+    TRUE(),
+    ISBLANK(m), ""ND"",
+    m >= 20, ""Taux mortalité WASH moyen : Alerte élevée"",
+    m >= 5, ""Taux mortalité WASH moyen : Alerte modérée"",
+    ""Taux mortalité WASH moyen: Situation favorable""
+)"
+Mesures,Taux accès eau % - affichage,3- DASHBOARD\Page1\Carte,False,,"
+VAR v = [Accès eau potable % moyen]
+RETURN
+IF(
+    ISBLANK(v),
+    ""ND"",
+    FORMAT(v, ""0.00"")
+)"
+Mesures,Afficher_Pays_Eligibles_v4,3- DASHBOARD\Page2,False,0,"
+VAR iso = SELECTEDVALUE(dim_pays_star_fr[iso3])
+VAR choixPop = SELECTEDVALUE(dim_pays_star_fr[Eligible_pop_500k], ""Tous"")
+VAR choixStab = SELECTEDVALUE('Filtre_stabilité_politique'[Option], ""Inclure les pays instables"")
+VAR seuil = [Seuil stabilité]
+VAR stab = [Stabilité politique moyenne KPI]
+VAR okGeo = NOT(iso IN {""CHN"",""HKG"",""MAC"",""TWN""})
+VAR okPop =
+    SWITCH(
+        choixPop,
+        ""Oui (>500k)"", TRUE(),
+        ""Non (<=500k)"", TRUE(),
+        ""Inconnu"", FALSE(),
+        TRUE()
+    )
+VAR okStab =
+    IF(choixStab = ""Exclure les pays instables"", stab >= seuil, TRUE())
+RETURN
+IF(okGeo && okPop && okStab, 1, 0)"
+Mesures,Afficher_Pays_Eligibles_v5,3- DASHBOARD\Page2,False,0,"
+VAR iso = SELECTEDVALUE(dim_pays_star_fr[iso3])
+VAR choixPop = SELECTEDVALUE(dim_pays_star_fr[Eligible_pop_500k], ""Oui (>500k)"")
+VAR choixStab =
+IF(
+    HASONEVALUE('Filtre_stabilité_politique'[Option]),
+    SELECTEDVALUE('Filtre_stabilité_politique'[Option]),
+    ""Inclure les pays instables""
+)
+VAR choixEff =
+IF(
+    HASONEVALUE(Filtre_effectivite_gouvernementale[Option]),
+    SELECTEDVALUE(Filtre_effectivite_gouvernementale[Option]),
+    ""Inclure les pays performants""
+)
+
+VAR seuil1 = [Seuil stabilité]
+VAR stab = [Stabilité politique moyenne KPI]
+
+VAR seuil2 = [Seuil effectivité sélectionné]
+VAR eff = [Score effectivite gouvernementale exacte]
+
+VAR popPays = SELECTEDVALUE(dim_pays_star_fr[Eligible_pop_500k], ""Inconnu"")
+
+VAR okGeo =
+NOT ISBLANK(iso) &&
+NOT ( iso IN { ""HKG"", ""MAC"", ""TWN"" } )
+
+VAR okPop =
+SWITCH(
+choixPop,
+""Oui (>500k)"", popPays = ""Oui (>500k)"",
+""Non (<=500k)"", popPays = ""Non (<=500k)"",
+""Inconnu"", popPays = ""Inconnu"",
+TRUE()
+)
+VAR okStab =
+IF(
+choixStab = ""Exclure les pays instables"",
+NOT ISBLANK(stab) && stab >= seuil1,
+TRUE()
+)
+
+VAR okEff =
+IF(
+choixEff = ""Exclure les pays performants"",
+NOT ISBLANK(eff) && eff <= seuil2,
+TRUE()
+)
+RETURN 
+IF(okGeo && okPop && okStab && okEff, 1, 0)"
+Mesures,Afficher_Pays_Eligibles_v6,3- DASHBOARD\Page2,False,0,"
+VAR iso = SELECTEDVALUE(dim_pays_star_fr[iso3])
+
+VAR choixPop =
+IF(
+HASONEVALUE(Filtre_population[Option]),
+SELECTEDVALUE(Filtre_population[Option]),
+""Tous""
+)
+
+VAR choixStab =
+IF(
+HASONEVALUE('Filtre_stabilité_politique'[Option]),
+SELECTEDVALUE('Filtre_stabilité_politique'[Option]),
+""Inclure les pays instables""
+)
+
+VAR choixEff =
+IF(
+HASONEVALUE(Filtre_effectivite_gouvernementale[Option]),
+SELECTEDVALUE(Filtre_effectivite_gouvernementale[Option]),
+""Inclure les pays performants""
+)
+
+VAR seuilStab = [Seuil stabilité]
+VAR seuilEff = [Seuil effectivité sélectionné]
+VAR seuiEffNormalise = [Seuil_Normalisé]
+
+VAR stab = [Stabilité politique moyenne KPI]
+VAR eff = [Score effectivite gouvernementale exacte]
+
+VAR popPays = SELECTEDVALUE(dim_pays_star_fr[Eligible_pop_500k], ""Inconnu"")
+
+VAR okGeo =
+NOT (iso IN {""CHN"",""HKG"",""MAC"",""TWN""})
+
+VAR okPop =
+SWITCH(
+choixPop,
+""Tous"", TRUE(),
+""Oui (>500k)"", popPays = ""Oui (>500k)"",
+""Non (<=500k)"", popPays = ""Non (<=500k)"",
+""Inconnu"", popPays = ""Inconnu"",
+TRUE()
+)
+
+VAR okStab =
+IF(
+choixStab = ""Exclure les pays instables"",
+NOT ISBLANK(stab) && stab >= seuilStab,
+TRUE()
+)
+
+VAR okEff =
+    IF(
+        choixEff = ""Exclure les pays performants"",
+        NOT ISBLANK(eff) && eff > seuiEffNormalise && eff >= seuilEff  ,  
+        TRUE()
+    )
+
+RETURN
+IF(okGeo && okPop && okStab && okEff, 1, 0)"
+Mesures,Afficher_Pays_Eligibles_v7,3- DASHBOARD\Page2,False,0,"
+VAR iso = SELECTEDVALUE(dim_pays_star_fr[iso3])
+
+VAR choixPop =
+IF(
+    HASONEVALUE(Filtre_population[Option]),
+    SELECTEDVALUE(Filtre_population[Option]),
+    ""Tous""
+)
+
+VAR choixStab =
+IF(
+    HASONEVALUE('Filtre_stabilité_politique'[Option]),
+    SELECTEDVALUE('Filtre_stabilité_politique'[Option]),
+    ""Inclure les pays instables""
+)
+
+VAR choixEff =
+IF(
+    HASONEVALUE(Filtre_effectivite_gouvernementale[Option]),
+    SELECTEDVALUE(Filtre_effectivite_gouvernementale[Option]),
+    ""Inclure les pays performants""
+)
+
+VAR seuilStab = [Seuil stabilité]
+VAR seuilEff = [Seuil effectivité sélectionné]
+
+VAR stab = [Stabilité politique moyenne KPI]
+VAR eff = [Score effectivite gouvernementale exacte]
+
+VAR popPays = SELECTEDVALUE(dim_pays_star_fr[Eligible_pop_500k], ""Inconnu"")
+
+VAR okGeo =
+    NOT (iso IN {""CHN"",""HKG"",""MAC"",""TWN""})
+
+VAR okPop =
+    SWITCH(
+        choixPop,
+        ""Tous"", popPays =""Tous"",
+        ""Oui (>500k)"", popPays = ""Oui (>500k)"",
+        ""Non (<=500k)"", popPays = ""Non (<=500k)"",
+        ""Inconnu"", popPays = ""Inconnu"",
+        TRUE()
+    )
+
+VAR okStab =
+IF(
+    choixStab = ""Exclure les pays instables"",
+    NOT ISBLANK(stab) && stab >= seuilStab,
+    TRUE()
+)
+
+VAR okEff =
+IF(
+    choixEff = ""Exclure les pays performants"",
+    NOT ISBLANK(eff) && eff <= seuilEff,
+    TRUE()
+)
+
+RETURN
+IF(okGeo && okPop && okStab && okEff, 1, 0)"
+Mesures,Afficher_Pays_Eligibles_v8,3- DASHBOARD\Page2,False,0,"
+VAR iso =
+    COALESCE(
+        SELECTEDVALUE(dim_pays_star_fr[iso3]),
+        SELECTEDVALUE(fact_dashboard_star_fr[iso3])
+    )
+
+VAR choixPop =
+    COALESCE(SELECTEDVALUE(Filtre_population[Option]), ""Tous"")
+
+VAR choixStab =
+    COALESCE(
+        SELECTEDVALUE('Filtre_stabilité_politique'[Option]),
+        ""Inclure les pays instables""
+    )
+
+VAR choixEff =
+    COALESCE(
+        SELECTEDVALUE(Filtre_effectivite_gouvernementale[Option]),
+        ""Inclure les pays performants""
+    )
+
+VAR seuilStab = [Seuil stabilité]
+VAR seuilEff = [Seuil effectivité sélectionné]
+
+VAR stab = [Stabilité politique moyenne KPI]
+VAR eff = [Score effectivite gouvernementale exacte]
+
+VAR popPaysRaw =
+    LOOKUPVALUE(
+        dim_pays_star_fr[Eligible_pop_500k],
+        dim_pays_star_fr[iso3], iso
+    )
+
+VAR popPaysNorm =
+    SWITCH(
+        TRUE(),
+        ISBLANK(popPaysRaw), ""Inconnu"",
+        popPaysRaw = ""Oui (>500k)"" || popPaysRaw = ""Oui (> 500k)"", ""Oui (>500k)"",
+        popPaysRaw = ""Non (<=500k)"" || popPaysRaw = ""Non (<= 500k)"" || popPaysRaw = ""Non (<500k)"", ""Non (<=500k)"",
+        popPaysRaw = ""Inconnu"", ""Inconnu"",
+        ""Inconnu""
+    )
+
+VAR okGeo =
+    NOT (iso IN {""CHN"",""HKG"",""MAC"",""TWN""})
+
+VAR okPop =
+    SWITCH(
+        choixPop,
+        ""Tous"", TRUE(),
+        ""Oui (>500k)"", popPaysNorm = ""Oui (>500k)"",
+        ""Non (<=500k)"", popPaysNorm = ""Non (<=500k)"",
+        ""Inconnu"", popPaysNorm = ""Inconnu"",
+        TRUE()
+    )
+
+VAR okStab =
+    IF(
+        choixStab = ""Exclure les pays instables"",
+        NOT ISBLANK(stab) && stab >= seuilStab,
+        TRUE()
+    )
+
+VAR okEff =
+    IF(
+        choixEff = ""Exclure les pays performants"",
+        NOT ISBLANK(eff) && eff <= seuilEff,
+        TRUE()
+    )
+
+RETURN
+    IF(okGeo && okPop && okStab && okEff, 1, 0)"
+Mesures,Afficher_Pays_Eligibles_v9,3- DASHBOARD\Page2,False,0,"
+VAR iso =
+COALESCE(
+SELECTEDVALUE(dim_pays_star_fr[iso3]),
+SELECTEDVALUE(fact_dashboard_star_fr[iso3])
+)
+
+VAR choixPopRaw =
+COALESCE(SELECTEDVALUE(Filtre_population[Option]), ""Tous"")
+
+VAR choixPopNorm =
+SWITCH(
+TRUE(),
+CONTAINSSTRING(LOWER(choixPopRaw), ""tous""), ""Tous"",
+CONTAINSSTRING(LOWER(choixPopRaw), ""inconnu""), ""Inconnu"",
+CONTAINSSTRING(LOWER(choixPopRaw), ""oui""), ""Oui (>500k)"",
+CONTAINSSTRING(LOWER(choixPopRaw), ""non""), ""Non (<=500k)"",
+""Tous""
+)
+
+VAR choixStab =
+COALESCE(
+SELECTEDVALUE('Filtre_stabilité_politique'[Option]),
+""Inclure les pays instables""
+)
+
+VAR choixEff =
+COALESCE(
+SELECTEDVALUE(Filtre_effectivite_gouvernementale[Option]),
+""Inclure les pays performants""
+)
+
+VAR seuilStab = [Seuil stabilité]
+VAR seuilEff = [Seuil effectivité sélectionné]
+
+VAR stab = [Stabilité politique moyenne KPI]
+VAR eff = [Score effectivite gouvernementale exacte]
+
+VAR popPaysRaw =
+LOOKUPVALUE(
+dim_pays_star_fr[Eligible_pop_500k],
+dim_pays_star_fr[iso3], iso
+)
+
+VAR tPopPays = LOWER(TRIM(COALESCE(popPaysRaw, """")))
+
+VAR popPaysNorm =
+SWITCH(
+TRUE(),
+tPopPays = """", ""Inconnu"",
+CONTAINSSTRING(tPopPays, ""inconnu""), ""Inconnu"",
+CONTAINSSTRING(tPopPays, ""oui""), ""Oui (>500k)"",
+CONTAINSSTRING(tPopPays, ""non""), ""Non (<=500k)"",
+""Inconnu""
+)
+
+VAR okGeo =
+NOT (iso IN {""CHN"",""HKG"",""MAC"",""TWN""})
+
+VAR okPop =(
+VAR codePop = [CodePop_selectionne]
+VAR pop = MAX(fact_dashboard_star_fr[population_totale])
+RETURN
+SWITCH(
+codePop,
+0, TRUE(),
+1, NOT ISBLANK(pop) && pop > 500000,
+2, NOT ISBLANK(pop) && pop <= 500000,
+9, ISBLANK(pop),
+TRUE()
+))
+
+VAR okStab =
+IF(
+choixStab = ""Exclure les pays instables"",
+NOT ISBLANK(stab) && stab >= seuilStab,
+TRUE()
+)
+
+VAR okEff =
+IF(
+choixEff = ""Exclure les pays performants"",
+NOT ISBLANK(eff) && eff <= seuilEff,
+TRUE()
+)
+
+RETURN
+IF(okGeo && okPop && okStab && okEff, 1, 0)"
+Mesures,CodePop_selectionne,3- DASHBOARD\Page2,False,0,"
+SELECTEDVALUE(Filtre_population[CodePop], 0)"
+Mesures,Couleur Gouvernance,3- DASHBOARD\Page2,False,,"
+VAR X = SELECTEDVALUE(fact_dashboard_star_fr[stabilite_politique], BLANK())  // Axe X
+VAR Y = SELECTEDVALUE(fact_dashboard_star_fr[score_effectivite_gouvernementale], BLANK()) // Axe Y
+RETURN
+    SWITCH(
+        TRUE(),
+        ISBLANK(X) || ISBLANK(Y), BLANK(),  // Si X ou Y est vide, retourne BLANK()
+        X >= 0.5 && Y >= 0.5, ""#90EE90"",    // 🟢 Vert : Modèles à suivre
+        X <= -0.5 && Y <= -0.5, ""#FF9999"",  // 🔴 Rouge : Priorité absolue
+        ""#FFFF99""                           // 🟡 Jaune : Amélioration possible
+    )"
+Mesures,Couleur Modernisation Services,3- DASHBOARD\Page2,False,,"
+VAR X = SELECTEDVALUE(fact_dashboard_star_fr[acces_eau_potable_pct], 0)
+VAR Y = SELECTEDVALUE(fact_dashboard_star_fr[service_safely_managed_pct], 0)
+RETURN
+    SWITCH(
+        TRUE(),
+        X >= 70 && Y >= 70, ""#90EE90"",  // 🟢 Vert
+        X <= 30 && Y <= 30, ""#FF9999"",  // 🔴 Rouge
+        ABS(X - Y) > 20, ""#FFFF99"",    // 🟡 Jaune (écart > 20%)
+        ""#FFFF99""                     // 🟡 Jaune (par défaut)
+    )"
+Mesures,Debug_CodePop,3- DASHBOARD\Page2,False,,"CONCATENATEX(VALUES(Filtre_population[CodePop]), Filtre_population[CodePop], "","")"
+Mesures,Debug_Pop_Match,3- DASHBOARD\Page2,False,,"
+VAR slicer = [Debug_Pop_Slicer]
+VAR pays = [Debug_Pop_Pays]
+RETURN
+SWITCH(
+    TRUE(),
+    slicer = ""Tous"", ""OK"",
+    slicer = ""Oui (>500k)"" && pays = ""Oui (>500k)"", ""OK"",
+    (slicer = ""Non (<=500k)"" || slicer = ""Non (<500k)"") && pays = ""Non (<=500k)"", ""OK"",
+    slicer = ""Inconnu"" && pays = ""Inconnu"", ""OK"",
+    ""KO""
+)"
+Mesures,Debug_Pop_Pays,3- DASHBOARD\Page2,False,,"
+VAR iso =
+    COALESCE(
+        SELECTEDVALUE(dim_pays_star_fr[iso3]),
+        SELECTEDVALUE(fact_dashboard_star_fr[iso3])
+    )
+VAR popPaysRaw =
+    LOOKUPVALUE(
+        dim_pays_star_fr[Eligible_pop_500k],
+        dim_pays_star_fr[iso3], iso
+    )
+RETURN
+    SWITCH(
+        TRUE(),
+        ISBLANK(popPaysRaw), ""Inconnu"",
+        popPaysRaw = ""Non (<500k)"", ""Non (<=500k)"",
+        popPaysRaw
+    )"
+Mesures,Debug_Pop_Slicer,3- DASHBOARD\Page2,False,,"
+COALESCE(SELECTEDVALUE(Filtre_population[Option]), ""Tous"")"
+Mesures,Domaine_Recommande,3- DASHBOARD\Page2,False,,"
+VAR c = [Score creation (pays)]
+VAR m = [Score modernisation (pays)]
+VAR g = [Score gouvernance (pays)]
+RETURN
+SWITCH(
+    TRUE(),
+    c >= m && c >= g, ""Creation"",
+    m >= c && m >= g, ""Modernisation"",
+    ""Gouvernance""
+)"
+Mesures,Gap efficacité-stabilité,3- DASHBOARD\Page2,False,0.00\ %;-0.00\ %;0.00\ %,"COALESCE([Score effectivite gouvernementale exacte]- [Stabilité politique moyenne KPI],0)"
+Mesures,Justification_Courte,3- DASHBOARD\Page2,False,,"
+SWITCH(
+    [Domaine_Recommande],
+    ""Creation"", ""Acces potable faible et urbanisation elevee"",
+    ""Modernisation"", ""Ecart important entre infrastructure basique et sure"",
+    ""Gouvernance"", ""Stabilite correcte mais efficacite de gouvernance insuffisante"",
+    ""A analyser""
+)"
+Mesures,Mortalite WASH max globale,3- DASHBOARD\Page2,False,,"
+CALCULATE(
+    MAX(fact_dashboard_star_fr[mortalite_wash_pour_100k]),
+    ALL(fact_dashboard_star_fr)
+)"
+Mesures,Mortalite WASH min globale,3- DASHBOARD\Page2,False,,"
+CALCULATE(
+    MIN(fact_dashboard_star_fr[mortalite_wash_pour_100k]),
+    ALL(fact_dashboard_star_fr)
+)"
+Mesures,Moyenne acces_eau_potable_pct,3- DASHBOARD\Page2,False,,AVERAGE(fact_dashboard_star_fr[acces_eau_potable_pct])
+Mesures,Moyenne part_rurale_pct,3- DASHBOARD\Page2,False,,AVERAGE(fact_dashboard_star_fr[part_rurale_pct])
+Mesures,NbPays_StabNeg_2016,3- DASHBOARD\Page2,False,0,"
+COALESCE(
+    COUNTROWS(
+        FILTER(
+            VALUES(dim_pays_star_fr[iso3]),
+            CALCULATE(
+                AVERAGE(Fact_KPI_Monde[stabilite_politique]),
+                KEEPFILTERS(dim_annee_star_fr[annee] = 2016)
+            ) < [Seuil stabilité]
+        )
+    ),
+    0
+)"
+Mesures,NbPays_StabPos_2018,3- DASHBOARD\Page2,False,0,"
+COALESCE(
+    COUNTROWS(
+        FILTER(
+            VALUES(dim_pays_star_fr[iso3]),
+            CALCULATE(
+                AVERAGE(Fact_KPI_Monde[stabilite_politique]),
+                KEEPFILTERS(dim_annee_star_fr[annee] = 2018)
+            ) < [Seuil stabilité]
+        )
+    ),
+    0
+)"
+Mesures,Nb_Pays_Affiches_Tableau,3- DASHBOARD\Page2,False,0,"COALESCE(
+COUNTROWS(
+    FILTER(
+        VALUES(dim_pays_star_fr[cle_pays]),
+        [Afficher_Pays_Eligibles_v5] = 1
+        && [R_Priorite] <= 10
+    )
+),0)"
+Mesures,Nb_Pays_Eligibles,3- DASHBOARD\Page2,False,0,"COALESCE(
+COUNTROWS(
+    FILTER(
+        VALUES(dim_pays_star_fr[cle_pays]),
+        [Afficher_Pays_Eligibles_v5] = 1
+    )
+),0)"
+Mesures,Nb_Pays_Eligibles2,3- DASHBOARD\Page2,False,0,"
+VAR codePop = SELECTEDVALUE(Filtre_population[CodePop], 0)
+RETURN
+COUNTROWS(
+FILTER(
+VALUES(dim_pays_star_fr[iso3]),
+VAR pop = CALCULATE(MAX(fact_dashboard_star_fr[population_totale]))
+RETURN
+SWITCH(
+codePop,
+0, TRUE(),
+1, NOT ISBLANK(pop) && pop > 500000,
+2, NOT ISBLANK(pop) && pop <= 500000,
+9, ISBLANK(pop),
+TRUE()
+)
+)
+)"
+Mesures,Nb_pays_recommandables,3- DASHBOARD\Page2,False,0,"COALESCE(
+COUNTROWS(
+FILTER(
+VALUES(dim_pays_star_fr[cle_pays]),
+[Afficher_Pays_Eligibles_v5] = 1
+&& NOT ISBLANK([Score creation (pays)])
+&& NOT ISBLANK([Score modernisation (pays)])
+&& NOT ISBLANK([Score gouvernance (pays)])
+)
+),0)"
+Mesures,Nb_pays_restants_2016,3- DASHBOARD\Page2,False,0,"
+VAR PaysFiltres =
+    FILTER(
+        VALUES(dim_pays_star_fr[iso3]),
+        CALCULATE(
+            AVERAGE(fact_dashboard_star_fr[stabilite_politique]),
+            KEEPFILTERS(fact_dashboard_star_fr[annee] = 2016)
+        ) >= [Seuil stabilité]
+    )
+RETURN
+COALESCE(COUNTROWS(PaysFiltres), 0)"
+Mesures,Niveau_Urgence,3- DASHBOARD\Page2,False,,"
+SWITCH(
+    TRUE(),
+    [Score_Final_100] >= 70, ""Elevé"",
+    [Score_Final_100] >= 40, ""Moyen"",
+    ""Faible""
+)"
+Mesures,Part rurale (%),3- DASHBOARD\Page2,False,,AVERAGE(fact_dashboard_star_fr[part_rurale_pct])/100
+Mesures,Part urbaine (%),3- DASHBOARD\Page2,False,,(100 - AVERAGE(fact_dashboard_star_fr[part_rurale_pct])) 
+Mesures,Pays_Unique_Negatif_Preselection_V5,3- DASHBOARD\Page2,False,0,"
+VAR EstPreselectionne = [Afficher_Pays_Eligibles_v5]
+VAR GapPays = [Gap efficacité-stabilité]
+VAR NbNegatifsDansPresel =
+COUNTROWS(
+FILTER(
+ALLSELECTED(Fact_KPI_Monde[pays]),
+CALCULATE([Afficher_Pays_Eligibles_v5]) = 1
+&& CALCULATE( [Gap efficacité-stabilité]) < 0
+)
+)
+RETURN
+IF(
+EstPreselectionne = 1
+&& GapPays < 0
+&& NbNegatifsDansPresel = 1,
+1,
+0
+)"
+Mesures,Population (M),3- DASHBOARD\Page2,False,,"DIVIDE(SUM(fact_dashboard_star_fr[population_totale]), 1000000)"
+Mesures,R_Priorite,3- DASHBOARD\Page2,False,0,"
+VAR PaysCourant =
+    SELECTEDVALUE(dim_pays_star_fr[cle_pays])
+VAR BaseClassement =
+    FILTER(
+        ALLSELECTED(dim_pays_star_fr[cle_pays]),
+        [Afficher_Pays_Eligibles_v5] = 1
+            && NOT ISBLANK([Score_Final_100])
+    )
+RETURN
+IF(
+    [Afficher_Pays_Eligibles] = 1
+        && NOT ISBLANK(PaysCourant)
+        && NOT ISBLANK([Score_Final_100]),
+    RANKX(
+        BaseClassement,
+        [Score_Final_100],
+        ,
+        DESC,
+        DENSE
+    )
+)"
+Mesures,Rang Top10 Creation,3- DASHBOARD\Page2,False,0,"
+RANKX(
+    FILTER(
+        ALLSELECTED(dim_pays_star_fr[cle_pays]),
+        [Afficher_Pays_Eligibles] = 1
+    ),
+    [Score creation (pays)],
+    ,
+    DESC,
+    DENSE
+)"
+Mesures,Ref X Stabilité 0,3- DASHBOARD\Page2,False,0,0
+Mesures,Ref X Stabilité Risque,3- DASHBOARD\Page2,False,0,"
+-1"
+Mesures,Ref Y Efficacité Médiane,3- DASHBOARD\Page2,False,,"
+MEDIANX(
+ALLSELECTED(dim_pays_star_fr[pays]),
+[Score effectivite gouvernementale exacte]
+)"
+Mesures,Ref Y Efficacité P75,3- DASHBOARD\Page2,False,,"
+PERCENTILEX.INC(
+ALLSELECTED(dim_pays_star_fr[pays]),
+[Score effectivite gouvernementale exacte],
+0.75
+)"
+Mesures,Region_Selectionne,3- DASHBOARD\Page2,False,,"
+SELECTEDVALUE(dim_pays_star_fr[region], ""Sélectionnez une région"")"
+Mesures,Score acces eau,3- DASHBOARD\Page2,False,,"
+DIVIDE(
+    AVERAGE(fact_dashboard_star_fr[acces_eau_potable_pct]),
+    100
+)"
+Mesures,Score creation (eligible),3- DASHBOARD\Page2,False,,"
+IF(
+    [Afficher_Pays_Eligibles] = 1,
+    [Score creation (pays)],
+    BLANK()
+)"
+Mesures,Score creation (pays),3- DASHBOARD\Page2,False,,"
+AVERAGEX(
+    VALUES(dim_pays_star_fr[cle_pays]),
+    CALCULATE(MAX(fact_dashboard_star_fr[score_creation_services]))
+)"
+Mesures,Score creation max,3- DASHBOARD\Page2,False,,MAX(fact_dashboard_star_fr[score_creation_services])
+Mesures,Score effectivite gouvernementale exacte,3- DASHBOARD\Page2,False,0.00,"
+0.5 * [Score mortalite WASH inverse]
+    + 0.5 * [Score acces eau]"
+Mesures,Score gouvernance (pays),3- DASHBOARD\Page2,False,,"
+AVERAGEX(
+    VALUES(dim_pays_star_fr[cle_pays]),
+    CALCULATE(MAX(fact_dashboard_star_fr[score_gouvernance]))
+)"
+Mesures,Score gouvernance max,3- DASHBOARD\Page2,False,,MAX(fact_dashboard_star_fr[score_gouvernance])
+Mesures,Score modernisation (pays),3- DASHBOARD\Page2,False,,"
+AVERAGEX(
+    VALUES(dim_pays_star_fr[cle_pays]),
+    CALCULATE(MAX(fact_dashboard_star_fr[score_modernisation_services]))
+)"
+Mesures,Score modernisation max,3- DASHBOARD\Page2,False,,MAX(fact_dashboard_star_fr[score_modernisation_services])
+Mesures,Score mortalite WASH inverse,3- DASHBOARD\Page2,False,,"
+VAR CurrentValue = AVERAGE(fact_dashboard_star_fr[mortalite_wash_pour_100k])
+VAR MinValue = [Mortalite WASH min globale]
+VAR MaxValue = [Mortalite WASH max globale]
+RETURN
+IF(
+    ISBLANK(CurrentValue),
+    BLANK(),
+    IF(
+        MaxValue = MinValue,
+        0,
+        1 - DIVIDE(CurrentValue - MinValue, MaxValue - MinValue)
+    )
+)"
+Mesures,Score_Final_100,3- DASHBOARD\Page2,False,,"
+MAX([Score creation (pays)], MAX([Score modernisation (pays)], [Score gouvernance (pays)]))"
+Mesures,Score_final_moyen_eligible,3- DASHBOARD\Page2,False,,"coalesce(
+AVERAGEX(
+    FILTER(
+        VALUES(dim_pays_star_fr[cle_pays]),
+        [Afficher_Pays_Eligibles_v5] = 1
+    ),
+    MAX(
+        [Score creation (pays)],
+        MAX([Score modernisation (pays)], [Score gouvernance (pays)])
+    )
+),0)"
+Mesures,Titre_Page_continentale,3- DASHBOARD\Page2,False,,"UPPER( [Continent_Selectionne]) & "": "" &
+""Sélection des pays candidats à une action DWFA "" "
+Mesures,// Mesure pour déterminer la couleur de chaque pointCouleur Point,3- DASHBOARD\Page3,False,,"
+VAR CurrentPays = SELECTEDVALUE(fact_dashboard_star_fr[pays], BLANK())  // Identifie le pays actuel
+VAR CurrentX =
+    CALCULATE(
+        MAX(fact_dashboard_star_fr[stabilite_politique]),
+        FILTER(
+            ALLSELECTED(fact_dashboard_star_fr),
+            fact_dashboard_star_fr[pays] = CurrentPays
+        )
+    )
+VAR CurrentY =
+    CALCULATE(
+        MAX(fact_dashboard_star_fr[score_effectivite_gouvernementale]),
+        FILTER(
+            ALLSELECTED(fact_dashboard_star_fr),
+            fact_dashboard_star_fr[pays] = CurrentPays
+        )
+    )
+RETURN
+    SWITCH(
+        TRUE(),
+        CurrentX >= 0.66 && CurrentY >= 0.66, ""#90EE90"",  // 🟢 Vert
+        CurrentX <= 0.33 && CurrentY <= 0.33, ""#FF9999"",  // 🔴 Rouge
+        ""#FFFF99""                                          // 🟡 Jaune
+    )"
+Mesures,AccesEauNorme,3- DASHBOARD\Page3,False,,"
+VAR MinVal = CALCULATE(MIN('fact_dashboard_star_fr'[acces_eau_potable_pct]), ALL('fact_dashboard_star_fr'))
+VAR MaxVal = CALCULATE(MAX('fact_dashboard_star_fr'[acces_eau_potable_pct]), ALL('fact_dashboard_star_fr'))
+VAR CurrentVal = SELECTEDVALUE('fact_dashboard_star_fr'[acces_eau_potable_pct])
+RETURN
+IF(
+    NOT(ISBLANK(CurrentVal)) && (MaxVal - MinVal) <> 0,
+    1 - DIVIDE(CurrentVal - MinVal, MaxVal - MinVal),
+    BLANK()
+)"
+Mesures,Acces_Eau_Dynamique,3- DASHBOARD\Page3,False,,"
+IF(
+HASONEVALUE(dim_pays_star_fr[pays]),
+AVERAGE(fact_kpi_monde[acces_eau_potable_pct]),
+BLANK()
+)
+"
+Mesures,Accès eau potable % (année active),3- DASHBOARD\Page3,False,,"
+VAR y = [Année_Active]
+RETURN
+CALCULATE(
+    AVERAGE(fact_dashboard_star_fr[acces_eau_potable_pct]),
+    KEEPFILTERS(fact_dashboard_star_fr[annee] = y)
+)"
+Mesures,Action prioritaire dynamique,3- DASHBOARD\Page3,False,,"
+SWITCH(
+    TRUE(),
+    [StabiliteNorme] < -2, ""Renforcer la gouvernance politique"",
+    [AccesEauNorme] > 0.7, ""Créer ou étendre les services d'eau"",
+    [MortaliteNorme] > 0.7, ""Renforcer la prévention sanitaire"",
+    [RuraleNorme] > 0.7, ""Moderniser les services d'eau"",
+    ""Situation équilibrée""
+)"
+Mesures,Année_Active,3- DASHBOARD\Page3,False,0,"
+COALESCE(
+    SELECTEDVALUE(dim_annee_star_fr[annee]),
+    MAX(dim_annee_star_fr[annee])
+)"
+Mesures,Couleur Zone,3- DASHBOARD\Page3,False,,"
+VAR X = SELECTEDVALUE(fact_dashboard_star_fr[stabilite_politique], 0)  
+VAR Y = SELECTEDVALUE(fact_dashboard_star_fr[score_effectivite_gouvernementale], 0)         
+
+RETURN
+    SWITCH(
+        TRUE(),
+        X >= 0.66 && Y >= 0.66, ""#90EE90"",  // 🟢 Zone verte (Modèles à suivre)
+        X <= 0.33 && Y <= 0.33, ""#FF9999"",  // 🔴 Zone rouge (Priorité absolue)
+        ""#FFFF99""                           // 🟡 Zone jaune (Amélioration possible)
+    )"
+Mesures,Couleur_Signal_Bar,3- DASHBOARD\Page3,False,,"
+IF(
+    [Pays_Unique_Negatif_Preselection_V5] = 1,
+    ""#D62728"",   -- rouge alerte
+    ""#2E7D32""    -- vert normal
+)"
+Mesures,Domaine_Dominant_Annee,3- DASHBOARD\Page3,False,,"
+VAR c = [Score creation (pays)]
+VAR m = [Score modernisation (pays)]
+VAR g = [Score gouvernance (pays)]
+VAR mx = MAX(c, MAX(m, g))
+VAR nMax = INT(c = mx) + INT(m = mx) + INT(g = mx)
+RETURN
+IF(
+nMax > 1,
+""Mixte"",
+SWITCH(
+TRUE(),
+c = mx, ""Création"",
+m = mx, ""Modernisation"",
+""Gouvernance""
+)
+)"
+Mesures,Domaine_Recommande_Dynamique,3- DASHBOARD\Page3,False,,"
+VAR c = [Score creation (pays)]
+VAR m = [Score modernisation (pays)]
+VAR g = [Score gouvernance (pays)]
+RETURN
+IF(
+NOT HASONEVALUE(dim_pays_star_fr[pays]),
+""Sélection unique requise"",
+SWITCH(
+TRUE(),
+c >= m && c >= g, ""Priorité : Création dans le(s) pays où l’accès à l’eau est faible malgré une forte urbanisation."",
+m >= c && m >= g, ""Priorité : Modernisation le(s) pays avec un écart entre infrastructure basique et de qualité."",
+""Priorité : Conseiller le(s) pays où la stabilité politique ne se traduit pas par une gouvernance efficace.""
+)
+)
+"
+Mesures,Ecart basic vs safely managed (année active),3- DASHBOARD\Page3,False,,"
+[Accès eau potable % (année active)] - [Service safely managed % (année active)]"
+Mesures,Est_Dominant_Point,3- DASHBOARD\Page3,False,0,"
+IF([Score_Domaine_Click] = [Score_Dominant_Annee], 1, 0)"
+Mesures,Explication Domaine 1,3- DASHBOARD\Page3,False,,"
+SWITCH(
+    TRUE(),
+    [Action prioritaire dynamique] = ""Créer ou étendre les services d'eau"", ""Le pays a un accès à l'eau potable insuffisant par rapport à son urbanisation."",
+    [Action prioritaire dynamique] = ""Situation équilibrée"", ""Le pays présente un accès à l'eau potable cohérent avec son niveau d'urbanisation."",
+    BLANK()
+)"
+Mesures,Explication Domaine 2,3- DASHBOARD\Page3,False,,"
+SWITCH(
+    TRUE(),
+    [Action prioritaire dynamique] = ""Moderniser les services d'eau"", ""Le pays a une forte part rurale, d'où la priorité à la modernisation des services."",
+    [Action prioritaire dynamique] = ""Situation équilibrée"", ""Le pays ne présente pas de besoin particulier de modernisation des services."",
+    BLANK()
+)"
+Mesures,Explication Domaine 3,3- DASHBOARD\Page3,False,,"
+SWITCH(
+    TRUE(),
+    [Action prioritaire dynamique] = ""Créer ou étendre les services d'eau"", ""Le pays a un accès à l'eau insuffisant."",
+    [Action prioritaire dynamique] = ""Moderniser les services d'eau"", ""Le pays doit moderniser ses infrastructures."",
+    [Action prioritaire dynamique] = ""Renforcer la gouvernance politique"", ""Le pays présente une faible effectivité ou stabilité gouvernementale."",
+    [Action prioritaire dynamique] = ""Situation équilibrée"", ""Le pays ne présente pas de priorité particulière sur les axes analysés."",
+    ""Donnée non disponible""
+)"
+Mesures,Explication_DWFA_Creation,3- DASHBOARD\Page3,False,,"
+VAR s = [Score creation (pays)]
+RETURN
+SWITCH(
+TRUE(),
+ISBLANK(s), ""Création de services en"" & [Pays_Selectionne]&"" : données insuffisantes pour estimer le déficit de couverture."",
+s < 40, ""Création de services en "" & [Pays_Selectionne]&""  : déficit majeur d'accès. Priorité à l'extension rapide de la couverture dans les zones les moins desservies."",
+s < 70, ""Création de services en "" & [Pays_Selectionne]&""  : déficit modéré. Poursuivre l'extension en ciblant les poches de non-accès et les inégalités territoriales."",
+""Création de services en "" & [Pays_Selectionne]&"" : niveau avancé. Maintenir la dynamique d'extension tout en préparant la montée en qualité.""
+)"
+Mesures,Explication_DWFA_Gouvernance,3- DASHBOARD\Page3,False,,"
+VAR s = [Score gouvernance (pays)]
+RETURN
+SWITCH(
+TRUE(),
+ISBLANK(s), ""Gouvernance de l'eau en ""& [Pays_Selectionne]&"": données insuffisantes pour qualifier la capacité de pilotage public."",
+s < 40, ""Gouvernance de l'eau en ""& [Pays_Selectionne]&"": faible effectivité institutionnelle. Priorité au renforcement du pilotage, de la redevabilité et de la coordination inter-acteurs."",
+s < 70, ""Gouvernance de l'eau en ""& [Pays_Selectionne]&"": niveau intermédiaire. Le système fonctionne partiellement mais reste vulnérable en exécution et en continuité des politiques."",
+""Gouvernance de l'eau en ""& [Pays_Selectionne]&"" : niveau solide. Les institutions soutiennent la performance sectorielle, avec un potentiel d'accélération ciblée.""
+)"
+Mesures,Explication_DWFA_Modernisation,3- DASHBOARD\Page3,False,,"
+VAR s = [Score modernisation (pays)]
+RETURN
+SWITCH(
+TRUE(),
+ISBLANK(s), ""Modernisation en"" & [Pays_Selectionne]&"" : données insuffisantes pour mesurer l'écart entre service de base et service géré en toute sécurité."",
+s < 40, ""Modernisation en"" & [Pays_Selectionne]&""  : écart de qualité élevé. Priorité à la fiabilité, la continuité et la sécurité du service."",
+s < 70, ""Modernisation en"" & [Pays_Selectionne]&""  : transition engagée mais incomplète. Renforcer performance technique, maintenance et qualité de service."",
+""Modernisation en"" & [Pays_Selectionne]&""  : niveau élevé. Consolider les standards de qualité et optimiser la résilience du système.""
+)"
+Mesures,Interprétation Score Prioritaire,3- DASHBOARD\Page3,False,,"
+SWITCH(
+    TRUE(),
+    [Score prioritaire combiné] >= 0.75, ""Situation très prioritaire / critique"",
+    [Score prioritaire combiné] >= 0.5, ""Situation à surveiller / prioritaire"",
+    [Score prioritaire combiné] >= 0.25, ""Situation modérée"",
+    ""Situation peu prioritaire""
+)"
+Mesures,MortaliteNorme,3- DASHBOARD\Page3,False,,"
+VAR MinVal = CALCULATE(MIN('fact_dashboard_star_fr'[mortalite_wash_pour_100k]), ALL('fact_dashboard_star_fr'))
+VAR MaxVal = CALCULATE(MAX('fact_dashboard_star_fr'[mortalite_wash_pour_100k]), ALL('fact_dashboard_star_fr'))
+VAR CurrentVal = SELECTEDVALUE('fact_dashboard_star_fr'[mortalite_wash_pour_100k])
+RETURN
+IF(
+    NOT(ISBLANK(CurrentVal)) && (MaxVal - MinVal) <> 0,
+    DIVIDE(CurrentVal - MinVal, MaxVal - MinVal),
+    BLANK()
+)"
+Mesures,Pays_Selectionne,3- DASHBOARD\Page3,False,,"
+SELECTEDVALUE(dim_pays_star_fr[pays], ""Sélectionnez un pays"")
+"
+Mesures,Population totale pays,3- DASHBOARD\Page3,False,0,"
+VAR AnneeRef = [Année de référence accès eau KPI]
+RETURN
+    IF(
+        ISBLANK(AnneeRef),
+        BLANK(),
+        CALCULATE (
+            SUM(fact_dashboard_star_fr[population_totale]),
+            dim_annee_star_fr[annee] = AnneeRef
+        )
+    )"
+Mesures,Population totale pays max,3- DASHBOARD\Page3,False,0,"
+ MAX(fact_dashboard_star_fr[annee]
+)"
+Mesures,Population_Md_Dynamique,3- DASHBOARD\Page3,False,,"
+VAR v = SUM(fact_dashboard_star_fr[population_totale])
+RETURN
+IF(
+HASONEVALUE(dim_pays_star_fr[pays]),
+DIVIDE(v, 1000000000),
+BLANK()
+)
+"
+Mesures,Priorité création,3- DASHBOARD\Page3,False,,"""Priorité création : 
+Recommandation : Priorité à la création de services d’eau.
+Le pays cumule un accès à l’eau insuffisant et une structure de population qui nécessite un déploiement ciblé de nouvelles infrastructures."""
+Mesures,Priorité modernisation,3- DASHBOARD\Page3,False,,""" Priorité modernisation:
+Recommandation : Priorité à la modernisation des services existants.
+Le niveau de service de base est présent, mais l’écart avec le service géré en toute sécurité reste élevé, ce qui justifie un investissement qualité."""
+Mesures,Reco_Prioritaire,3- DASHBOARD\Page3,False,,"
+VAR y = [Année_Active]
+RETURN
+CALCULATE(
+    SELECTEDVALUE(fact_dashboard_star_fr[action_prioritaire]),
+    fact_dashboard_star_fr[annee] = y
+)"
+Mesures,Recommandation_Dynamique_Clic,3- DASHBOARD\Page3,False,,"
+VAR domaineClique = SELECTEDVALUE(Domaine_Click[Domaine])
+VAR domaineFinal =
+COALESCE(domaineClique, [Domaine_Dominant_Annee])
+RETURN
+SWITCH(
+domaineFinal,
+""Création"", ""Créer ou étendre les services d'eau"",
+""Modernisation"", ""Moderniser les services d'eau"",
+""Gouvernance"", ""Renforcer la gouvernance politique"",
+""Mixte"", ""Profil mixte : arbitrer entre modernisation et gouvernance selon la contrainte locale"",
+""Sélectionnez une année ou un point du graphique""
+)"
+Mesures,RuraleNorme,3- DASHBOARD\Page3,False,,"
+VAR MinVal = CALCULATE(MIN('fact_dashboard_star_fr'[part_rurale_pct]),ALL('fact_dashboard_star_fr'))
+VAR MaxVal = CALCULATE(MAX('fact_dashboard_star_fr'[part_rurale_pct]),ALL('fact_dashboard_star_fr'))
+VAR CurrentVal = SELECTEDVALUE ('fact_dashboard_star_fr'[part_rurale_pct])
+RETURN
+DIVIDE(CurrentVal - MinVal, MaxVal - MinVal)"
+Mesures,Score prioritaire combiné,3- DASHBOARD\Page3,False,0\ %;-0\ %;0\ %,([MortaliteNorme]+ [AccesEauNorme] + [StabiliteNorme] + [RuraleNorme] / 4) 
+Mesures,Score_Domaine_Click,3- DASHBOARD\Page3,False,,"
+SWITCH(
+SELECTEDVALUE(Domaine_Click[Domaine]),
+""Création"", [Score creation (pays)],
+""Modernisation"", [Score modernisation (pays)],
+""Gouvernance"", [Score gouvernance (pays)],
+BLANK()
+)"
+Mesures,Score_Dominant_Annee,3- DASHBOARD\Page3,False,,"
+VAR c = [Score creation (pays)]
+VAR m = [Score modernisation (pays)]
+VAR g = [Score gouvernance (pays)]
+RETURN
+MAX(c, MAX(m, g))"
+Mesures,Service safely managed % (année active),3- DASHBOARD\Page3,False,,"
+VAR y = [Année_Active]
+RETURN
+CALCULATE(
+    AVERAGE(fact_dashboard_star_fr[service_safely_managed_pct]),
+    KEEPFILTERS(fact_dashboard_star_fr[annee] = y)
+)"
+Mesures,Situation équilibrée,3- DASHBOARD\Page3,False,,""" Situation équilibrée : 
+Recommandation : Pas de priorité métier unique à ce stade.
+Les scores création, modernisation et gouvernance restent proches ; une stratégie progressive et multi-leviers est recommandée."""
+Mesures,StabiliteNorme,3- DASHBOARD\Page3,False,,"
+VAR MinVal = CALCULATE(MIN('fact_dashboard_star_fr'[stabilite_politique]), ALL('fact_dashboard_star_fr'))
+VAR MaxVal = CALCULATE(MAX('fact_dashboard_star_fr'[stabilite_politique]), ALL('fact_dashboard_star_fr'))
+VAR CurrentVal = SELECTEDVALUE('fact_dashboard_star_fr'[risque_faible_stabilite])
+RETURN
+1 - DIVIDE(CurrentVal - MinVal, MaxVal - MinVal)"
+Mesures,Stabilite_Dynamique,3- DASHBOARD\Page3,False,,"
+IF(
+HASONEVALUE(dim_pays_star_fr[pays]),
+AVERAGE(fact_kpi_monde[stabilite_politique]),
+BLANK()
+)
+"
+Mesures,Texte_Reco_Clic,3- DASHBOARD\Page3,False,,"
+VAR an = SELECTEDVALUE(dim_annee_star_fr[annee], [Année_Active])
+RETURN
+""Année "" & an & "" : "" & [Recommandation_Dynamique_Clic]"
+Mesures,Titre_Infobulle_drapeau,3- DASHBOARD\Page3,False,,"
+COALESCE(
+    SELECTEDVALUE(dim_pays_star_fr[flag_png_url]),
+    ""Url pays indisponible""
+)"
+Mesures,Titre_Infobulle_pays,3- DASHBOARD\Page3,False,,"
+VAR p = SELECTEDVALUE(dim_pays_star_fr[pays])
+RETURN
+IF(
+    NOT ISBLANK(p),
+    """" & p,
+    ""Détail pays indisponible""
+)"
+Mesures,Titre_Page_Nationale,3- DASHBOARD\Page3,False,,"
+VAR Flag1 = [Pays_Unique_Negatif_Preselection_V5]
+VAR Selection  = IF ( Flag1 = 1 , ""🔴 Retenu"","""")
+RETURN
+UPPER( [Pays_Selectionne]) & "" "" & Selection"
+Mesures,Variation annuelle pop. rurale (%),3- DASHBOARD\Page3,False,,"
+VAR PopN = SELECTEDVALUE('fact_dashboard_star_fr'[population_rurale])
+VAR AnneeN = SELECTEDVALUE('fact_dashboard_star_fr'[annee])
+VAR PopN_1 =
+    CALCULATE(
+        SELECTEDVALUE('fact_dashboard_star_fr'[population_rurale]),
+        FILTER(
+            ALL('fact_dashboard_star_fr'),
+            'fact_dashboard_star_fr'[pays] = SELECTEDVALUE('fact_dashboard_star_fr'[pays]) &&
+            'fact_dashboard_star_fr'[annee] = AnneeN - 1
+        )
+    )
+RETURN
+
+IF(
+    NOT(ISBLANK(PopN)) && NOT(ISBLANK(PopN_1)) && PopN_1 <> 0,
+    DIVIDE(PopN - PopN_1, PopN_1) * 100,
+    BLANK()
+)"
+Mesures,Écart eau vs urbanisation,3- DASHBOARD\Page3,False,,"
+SELECTEDVALUE ('fact_dashboard_star_fr'[acces_eau_potable_pct]) - (100 - [Part rurale (%)])"
+Seuil_Effectiveness_Int,Debug_Eff_Max,,False,,"MAXX(VALUES(dim_pays_star_fr[iso3]), [Score effectivite gouvernementale exacte])"
+Seuil_Effectiveness_Int,Debug_Eff_Min,,False,,"MINX(VALUES(dim_pays_star_fr[iso3]), [Score effectivite gouvernementale exacte])"
+Seuil_Effectiveness_Int,Debug_Eff_Seuil,,False,,[Seuil effectivité sélectionné]
+Seuil_Effectiveness_Int,Seuil_Normalisé,,False,,"
+VAR Seuil_Actuel = SELECTEDVALUE(Seuil_Effectiveness_Int[Value], 0.985) 
+VAR Min_Seuil = 0.985
+VAR Max_Seuil = 0.99
+VAR Min_Graphique = 0.985
+VAR Max_Graphique = 0.999
+RETURN
+    Min_Graphique + (Seuil_Actuel - Min_Seuil) * (Max_Graphique - Min_Graphique) / (Max_Seuil - Min_Seuil)"
